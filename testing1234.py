@@ -1,6 +1,8 @@
 # file to play around with some packages
 
 import numpy as np, scipy as sp, librosa, cmath,math
+import time
+import fluidsynth
 # from IPython.display import Audio
 
 def get_piano_keys():
@@ -41,46 +43,56 @@ def wavwrite(filepath, data, sr, norm=True, dtype='int16',):
     data = data.astype(dtype)
     sp.io.wavfile.write(filepath, sr, data)
 
-# def round_to_pitch(frequency):
+def extract_pitch_sequence(filepath):
+    signal, sample_rate = librosa.load(filepath)
+    piano_freqs, piano_notes = get_piano_keys()
+    pitches, magnitudes = librosa.core.piptrack(signal, sr=sample_rate, fmin=150.0, fmax=4000.0, threshold=0.1)
+    num_times = pitches.shape[1]
+    num_freqs = pitches.shape[0]
 
+    max_pitches = np.zeros(num_times)
+    for time_frame_index in range(num_times):
+        max_ind = np.argmax(magnitudes[:,time_frame_index])
+        max_pitches[time_frame_index] = pitches[max_ind, time_frame_index]
 
-twinkle, sample_rate = librosa.load("twinkle.wav")
+    matched_pitches = np.zeros_like(max_pitches)
+    matched_notes = []
 
-piano_freqs, piano_notes = get_piano_keys()
+    for pitch_index in range(len(max_pitches)):
+        # print max_pitches[index]
+        matched_pitches[pitch_index] = min(piano_freqs, key=lambda x:abs(x-max_pitches[pitch_index]))
+        # print matched_pitches[index]
+        matched_notes.append(piano_notes[piano_freqs.index(matched_pitches[pitch_index])])
 
-pitches, magnitudes = librosa.core.piptrack(twinkle, sr=sample_rate, fmin=150.0, fmax=4000.0, threshold=0.1)
+    return matched_notes
 
-print pitches.shape
-print magnitudes.shape
-
-num_times = pitches.shape[1]
-num_freqs = pitches.shape[0]
-
-max_pitches = np.zeros(num_times)
-
-for time_frame_index in range(num_times):
-    max_ind = np.argmax(magnitudes[:,time_frame_index])
-    max_pitches[time_frame_index] = pitches[max_ind, time_frame_index]
-
-matched_pitches = np.zeros_like(max_pitches)
-matched_notes = []
-
-for pitch_index in range(len(max_pitches)):
-    # print max_pitches[index]
-    matched_pitches[pitch_index] = min(piano_freqs, key=lambda x:abs(x-max_pitches[pitch_index]))
-    # print matched_pitches[index]
-    matched_notes.append(piano_notes[piano_freqs.index(matched_pitches[pitch_index])])
-
-print matched_notes
-
-
+# print extract_pitch_sequence("twinkle.wav")
 # Twinkle Twinkle Melody in C
 # CC GG AA G  FF EE DD C
 
-# print max_pitches
+
 
 # wavwrite('output.wav', twinkle, sample_rate)
 
-# Audio(twinkle, rate = sample_rate)
 
-# print sample_rate
+
+fs = fluidsynth.Synth()
+
+fs.start()
+
+sfid = fs.sfload("example.sf2")
+fs.program_select(0, sfid, 0, 0)
+
+fs.noteon(0, 60, 30)
+fs.noteon(0, 67, 30)
+fs.noteon(0, 76, 30)
+
+time.sleep(1.0)
+
+fs.noteoff(0, 60)
+fs.noteoff(0, 67)
+fs.noteoff(0, 76)
+
+time.sleep(1.0)
+
+fs.delete()

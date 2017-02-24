@@ -1,7 +1,7 @@
 import sys
 from aubio import source, pitch
 
-filename = "toy dataset/silent.wav"
+filename = "toy_data/silent.wav"
 
 downsample = 1
 samplerate = 22050 // downsample

@@ -3,6 +3,9 @@
 import numpy as np, scipy as sp, librosa, cmath,math
 import time
 import fluidsynth
+import amfm_decompy.pYAAPT as pYAAPT
+import amfm_decompy.basic_tools as basic
+from matplotlib import pyplot as plt
 # from IPython.display import Audio
 
 def get_piano_keys():
@@ -43,6 +46,21 @@ def wavwrite(filepath, data, sr, norm=True, dtype='int16',):
     data = data.astype(dtype)
     sp.io.wavfile.write(filepath, sr, data)
 
+def test_librosa(filepath):
+    signal, sample_rate = librosa.load(filepath)
+    pitches, magnitudes = librosa.core.piptrack(signal, sr=sample_rate, fmin=150.0, fmax=4000.0, threshold=0.1)
+    print "Pitches size: ", pitches.shape
+    print "Magnitudes size: ", magnitudes.shape
+    num_times = pitches.shape[1]
+
+    max_pitches = np.zeros(num_times)
+    for time_frame_index in range(num_times):
+        max_ind = np.argmax(magnitudes[:,time_frame_index])
+        max_pitches[time_frame_index] = pitches[max_ind, time_frame_index]
+
+    plt.plot(max_pitches, label='whatever', color='green')
+    plt.show()
+
 def extract_pitch_sequence(filepath):
     signal, sample_rate = librosa.load(filepath)
     piano_freqs, piano_notes = get_piano_keys()
@@ -74,25 +92,34 @@ def extract_pitch_sequence(filepath):
 
 # wavwrite('output.wav', twinkle, sample_rate)
 
+def test_fluid_synth():
 
+    fs = fluidsynth.Synth()
 
-fs = fluidsynth.Synth()
+    fs.start()
 
-fs.start()
+    sfid = fs.sfload("example.sf2")
+    fs.program_select(0, sfid, 0, 0)
 
-sfid = fs.sfload("example.sf2")
-fs.program_select(0, sfid, 0, 0)
+    fs.noteon(0, 60, 30)
+    fs.noteon(0, 67, 30)
+    fs.noteon(0, 76, 30)
 
-fs.noteon(0, 60, 30)
-fs.noteon(0, 67, 30)
-fs.noteon(0, 76, 30)
+    time.sleep(1.0)
 
-time.sleep(1.0)
+    fs.noteoff(0, 60)
+    fs.noteoff(0, 67)
+    fs.noteoff(0, 76)
 
-fs.noteoff(0, 60)
-fs.noteoff(0, 67)
-fs.noteoff(0, 76)
+    time.sleep(1.0)
 
-time.sleep(1.0)
+    fs.delete()
 
-fs.delete()
+def test_pYAAPT(filepath):
+    signal = basic.SignalObj(filepath)
+    pitch = pYAAPT.yaapt(signal, **{'f0_min': 27.5, 'frame_length' : 50.0, 'frame_space' : 25.0, 'f0_max': 4186.0})
+    print "Pitch shape: ", pitch.values.shape
+    plt.plot(pitch.values, label='pchip interpolation', color='green')
+    plt.show()
+
+test_pYAAPT('toy_data/Row.wav')

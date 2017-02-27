@@ -26,21 +26,22 @@ def snap_to_pitchclass(pitches):
     matched_notes = []
 
     for pitch_index in range(len(pitches)):
-        print pitch_index
+        # print pitch_index
         tracked_pitch = pitches[pitch_index]
-        print tracked_pitch
+        # print tracked_pitch
 
         if (tracked_pitch < min(piano_freqs)) or (tracked_pitch > max(piano_freqs)):
             matched_pitches[pitch_index] = 0
-            print matched_pitches[pitch_index]
+            # print matched_pitches[pitch_index]
         else:
-            matched_pitches[pitch_index] = min(piano_freqs, key=lambda x:abs(x-pitches[pitch_index]))
-            print matched_pitches[pitch_index]
+            piano_index = np.argmin(abs(piano_freqs-pitches[pitch_index]))
+            # print piano_index
 
-            piano_index = piano_freqs.index(matched_pitches[pitch_index])
-            print piano_index
+            matched_pitches[pitch_index] = piano_freqs[piano_index]#min(piano_freqs, key=lambda x:abs(x-pitches[pitch_index]))
+            # print matched_pitches[pitch_index]
+
             matched_notes.append(piano_notes[piano_index])
-            print matched_notes[-1]
+            # print matched_notes[-1]
         print
 
     return matched_notes
@@ -54,7 +55,49 @@ def aggregate_pitchclass(matched_notes):
             agg_notes[matched_note] = 0
     return agg_notes
 
-def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, tolerance=.8):
+def moving_average(pitches, window=5, display=False):
+    # takes a moving average of the pitches to reduce variance
+
+    output = np.zeros_like(pitches)
+
+    for index in range(window, pitches.size-window):
+        output[index] = np.mean(pitches[index-window:index+window])
+
+    if display:
+        plt.figure()
+        plt.plot(output)
+        plt.show()
+    return output
+
+def debounce(pitches, tolerance = 1.5, display=False):
+    # debounces by removing big jumps in pitch
+    # tolerance should be greater than 1
+    # larger tolerance allows more variance
+    output = []
+
+    for index in range(1, pitches.size):
+        last_pitch = pitches[index-1]
+        this_pitch = pitches[index]
+        if (last_pitch is 0) and (not this_pitch is 0):
+            # we're leaving from zero, include this pitch
+            output.append(this_pitch)
+        elif (this_pitch < last_pitch*tolerance) and (this_pitch > last_pitch/tolerance):
+            # there's not a huge change, include this pitch
+            output.append(this_pitch)
+
+    output = np.array(output)
+
+    if display:
+        plt.figure()
+        plt.plot(output)
+        plt.show()
+    return output
+
+
+# def post_process(pitches):
+#     # takes a list of pitches and processes them so as to reduce effects
+
+def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, tolerance=.8, display=False):
     from aubio import source, pitch
     samplerate = sr // downsample
     if len( sys.argv ) > 2: samplerate = int(sys.argv[2])
@@ -80,7 +123,7 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
         pitch = pitch_o(samples)[0]
         #pitch = int(round(pitch))
         confidence = pitch_o.get_confidence()
-        #if confidence < 0.8: pitch = 0.
+        # if confidence < 0.8: pitch = 0.
         # print("%f %f %f" % (total_frames / float(samplerate), pitch, confidence))
         pitches += [pitch]
         confidences += [confidence]
@@ -90,16 +133,21 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
 
     if 0: sys.exit(0)
 
-    return np.array(pitches)
+    output = np.array(pitches)
 
-pitches = pitch_track("toy_data/row.wav")
+    if display:
+        plt.figure()
+        plt.plot(output)
+        plt.show()
+
+    return output
+
+pitches = pitch_track("toy_data/Mountain.wav", display=True)
+pitches = debounce(pitches, tolerance=1.2, display=True)
 matched_notes = snap_to_pitchclass(pitches)
 
-print matched_notes
+# print matched_notes
 
 agg_notes = aggregate_pitchclass(matched_notes)
 
 print agg_notes
-
-plt.plot(pitches)
-plt.show()

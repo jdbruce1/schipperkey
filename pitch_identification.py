@@ -55,6 +55,17 @@ def aggregate_pitchclass(matched_notes):
             agg_notes[matched_note] = 0
     return agg_notes
 
+def vectorize(agg_notes):
+    vector = [] # 0 index corresponds to C
+
+    for note_name in ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#","A","A#", "B"]:
+        try:
+            vector.append(agg_notes[note_name])
+        except KeyError:
+            vector.append(0)
+
+    return vector
+
 def moving_average(pitches, window=5, display=False):
     # takes a moving average of the pitches to reduce variance
 
@@ -142,12 +153,15 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
 
     return output
 
-pitches = pitch_track("toy_data/Mountain.wav", display=True)
-pitches = debounce(pitches, tolerance=1.2, display=True)
-matched_notes = snap_to_pitchclass(pitches)
+def identify_pitches(path):
 
-# print matched_notes
+    pitches = pitch_track(path, display=False)
+    # pitches = debounce(pitches, tolerance=1.2, display=True)
+    matched_notes = snap_to_pitchclass(pitches)
 
-agg_notes = aggregate_pitchclass(matched_notes)
+    # print matched_notes
 
-print agg_notes
+    agg_notes = aggregate_pitchclass(matched_notes)
+    # print agg_notes
+    return vectorize(agg_notes)
+    # print vector

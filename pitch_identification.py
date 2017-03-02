@@ -52,7 +52,7 @@ def aggregate_pitchclass(matched_notes):
         try:
             agg_notes[matched_note] += 1
         except KeyError:
-            agg_notes[matched_note] = 0
+            agg_notes[matched_note] = 1
     return agg_notes
 
 def vectorize(agg_notes):
@@ -79,6 +79,14 @@ def moving_average(pitches, window=5, display=False):
         plt.plot(output)
         plt.show()
     return output
+
+# def remove_jumps(pitches):
+#
+#     output = []
+#     for index in range(1, pitches.size):
+#         last_pitch = pitches[index-1]
+#         this_pitch = pitches[index]
+
 
 def debounce(pitches, tolerance = 1.5, display=False):
     # debounces by removing big jumps in pitch
@@ -155,13 +163,14 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
 
 def identify_pitches(path):
 
-    pitches = pitch_track(path, display=False)
+    pitches = pitch_track(path, display=True)
     # pitches = debounce(pitches, tolerance=1.2, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 
     # print matched_notes
 
     agg_notes = aggregate_pitchclass(matched_notes)
-    # print agg_notes
+    print agg_notes
     return vectorize(agg_notes)
-    # print vector
+
+print identify_pitches('toy_data/Silent.wav')

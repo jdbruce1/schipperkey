@@ -30,10 +30,12 @@ def snap_to_pitchclass(pitches):
         tracked_pitch = pitches[pitch_index]
         # print tracked_pitch
 
+        # feels weird to make pitch 0 when greater than maximum frequency, but I guess it's kind of an error code
         if (tracked_pitch < min(piano_freqs)) or (tracked_pitch > max(piano_freqs)):
             matched_pitches[pitch_index] = 0
             # print matched_pitches[pitch_index]
         else:
+            # we should consider doing a log-scale comparison of nearness
             piano_index = np.argmin(abs(piano_freqs-pitches[pitch_index]))
             # print piano_index
 
@@ -52,12 +54,13 @@ def aggregate_pitchclass(matched_notes):
         try:
             agg_notes[matched_note] += 1
         except KeyError:
+            # shouldn't we start the aggregation at 1, not 0? we found the note once
             agg_notes[matched_note] = 0
     return agg_notes
 
 def moving_average(pitches, window=5, display=False):
     # takes a moving average of the pitches to reduce variance
-
+    # window is double sided .. total will be averaged over 2*window values
     output = np.zeros_like(pitches)
 
     for index in range(window, pitches.size-window):
@@ -73,6 +76,12 @@ def debounce(pitches, tolerance = 1.5, display=False):
     # debounces by removing big jumps in pitch
     # tolerance should be greater than 1
     # larger tolerance allows more variance
+
+    #I'm not sure what I think about
+    # 1. this deletes pitches, rather than moving them
+    # 2. note jumps might not meet the tolerance.  Maybe we should be looking for quick up AND down
+    # or vice versa, rather than just a one-way change.  We're looking for spikes, not consistent
+    # pitch change.
     output = []
 
     for index in range(1, pitches.size):

@@ -6,7 +6,8 @@ import fluidsynth
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
 from matplotlib import pyplot as plt
-# from IPython.display import Audio
+from librosa import load
+from pitch_identification import identify_pitches_chromagram, identify_pitches
 
 def get_piano_keys():
     piano_freqs = []#np.zeros(88)
@@ -122,4 +123,10 @@ def test_pYAAPT(filepath):
     plt.plot(pitch.values, label='pchip interpolation', color='green')
     plt.show()
 
-test_pYAAPT('toy_data/Row.wav')
+cmaj_sig, sr = load('toy_data/cmaj_sung.wav')
+# print cmaj_sig
+chrom_vect = identify_pitches_chromagram(cmaj_sig)
+
+print chrom_vect
+
+# test_pYAAPT('toy_data/Row.wav')

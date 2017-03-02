@@ -123,7 +123,8 @@ def demo_mode():
 
 
 def custom_input(prompt=""):
-    out = raw_input(prompt).strip()
+    # print prompt
+    out = raw_input(prompt)
     if out is 'q' or out is 'quit' or out is 'exit':
         exit(0)
     return out
@@ -139,4 +140,3 @@ else:
     output = demo_mode()
     while output is 1:
         output = demo_mode()
-

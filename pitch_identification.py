@@ -1,7 +1,32 @@
 import sys
 import numpy as np
 import os.path
+from os import remove
 import matplotlib.pyplot as plt
+import scipy as sp
+
+def wavwrite(filepath, data, sr, norm=True, dtype='int16',):
+    '''
+    Write wave file using scipy.io.wavefile.write, converting from a float (-1.0 : 1.0) numpy array to an integer array
+
+    Parameters
+    ----------
+    filepath : str
+        The path of the output .wav file
+    data : np.array
+        The float-type audio array
+    sr : int
+        The sampling rate
+    norm : bool
+        If True, normalize the audio to -1.0 to 1.0 before converting integer
+    dtype : str
+        The output type. Typically leave this at the default of 'int16'.
+    '''
+    if norm:
+        data /= np.max(np.abs(data))
+    data = data * np.iinfo(dtype).max
+    data = data.astype(dtype)
+    sp.io.wavfile.write(filepath, sr, data)
 
 def get_piano_keys():
     piano_freqs = []#np.zeros(88)
@@ -44,7 +69,6 @@ def snap_to_pitchclass(pitches):
 
             matched_notes.append(piano_notes[piano_index])
             # print matched_notes[-1]
-        print
 
     return matched_notes
 
@@ -133,6 +157,7 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
     hop_s = hop_size // downsample # hop size
 
     s = source(path, samplerate, hop_s)
+
     samplerate = s.samplerate
 
     pitch_o = pitch("yin", win_s, hop_s, samplerate)
@@ -169,16 +194,28 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
 
     return output
 
-def identify_pitches(path):
+def identify_pitches(signal, sr=22050):
+    temp_path = 'temp.wav'
 
-    pitches = pitch_track(path, display=True)
+    wavwrite(temp_path, signal, sr)
+
+    output = identify_pitches_from_path(temp_path)
+
+    remove(temp_path)
+
+    return output
+
+
+def identify_pitches_from_path(path):
+
+    pitches = pitch_track(path, display=False)
     # pitches = debounce(pitches, tolerance=1.2, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 
     # print matched_notes
 
     agg_notes = aggregate_pitchclass(matched_notes)
-    print agg_notes
+    # print agg_notes
     return vectorize(agg_notes)
 
-print identify_pitches('toy_data/Silent.wav')
+# print identify_pitches('toy_data/Twinkle.wav')

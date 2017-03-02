@@ -3,10 +3,12 @@ import os
 import csv
 import sounddevice
 from librosa import load
-import numpy
+import numpy as np
+from key_identification import get_key_temp
+
 
 def get_keys(waves):
-    return [get_key(wave, wave) for wave in waves]
+    return [get_key_temp(wave, wave) for wave in waves] #[get_key(wave, wave) for wave in waves]
 
 
 def get_key(wave, name):
@@ -28,7 +30,7 @@ def record(sr):
     custom_input("(Press any key to stop recording.)")
     sounddevice.stop()
 
-    return numpy.trim_zeros(recording)
+    return np.trim_zeros(recording)
 
 
 def read_label_file(in_filename):
@@ -96,7 +98,7 @@ def demo_mode():
         melody, sr = load(file)
         name = file
 
-    key = get_key(melody, name)
+    key = get_key_temp(melody, sr, name) #get_key(melody, name)
     print "Assigned Keys:"
     for i in range(len(key[1])):
         print "\t", str(i+1) + ".", key[1][i]
@@ -123,7 +125,7 @@ def demo_mode():
 
 
 def custom_input(prompt=""):
-    # print prompt
+    print prompt
     out = raw_input(prompt)
     if out is 'q' or out is 'quit' or out is 'exit':
         exit(0)
@@ -140,3 +142,5 @@ else:
     output = demo_mode()
     while output is 1:
         output = demo_mode()
+
+# print get_key_temp('toy_data/Twinkle.wav')

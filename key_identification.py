@@ -1,5 +1,5 @@
 import numpy as np
-from pitch_identification import identify_pitches
+from pitch_identification import identify_pitches, identify_pitches_chromagram
 from librosa import load
 
 cmaj = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
@@ -15,7 +15,7 @@ def get_key_temp(melody, name, sr=22050):
     # returns the name and a list of top key options in sorted order
     # melody, sr = load(path)
 
-    pitch_intensities = np.array(identify_pitches(melody, sr))
+    pitch_intensities = np.array(identify_pitches_chromagram(melody, sr))
 
     key_likelihoods = np.zeros((len(pitch_intensities), 2))
     print pitch_intensities

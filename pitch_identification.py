@@ -4,6 +4,7 @@ import os.path
 from os import remove
 import matplotlib.pyplot as plt
 import scipy as sp
+import librosa
 
 def wavwrite(filepath, data, sr, norm=True, dtype='int16',):
     '''
@@ -205,6 +206,16 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
 
     return output
 
+def identify_pitches_chromagram(signal, sr=22050):
+    chromagram = librosa.feature.chroma_stft(y=signal, sr=sr)
+
+    plt.subplot(4,2,5)
+    librosa.display.specshow(chromagram, y_axis='chroma', x_axis='time')
+    plt.colorbar()
+    plt.show()
+    chrom_sum = np.sum(chromagram, axis=1)
+    return chrom_sum
+
 def identify_pitches(signal, sr=22050):
     # analyzes a signal into a vector of pitch intensities
     # hacked together temporary method
@@ -223,7 +234,7 @@ def identify_pitches_from_path(path, sr=22050):
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
 
-    pitches = pitch_track(path, sr=sr, display=False)
+    pitches = pitch_track(path, sr=sr, display=True)
     # pitches = debounce(pitches, tolerance=1.2, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 

@@ -32,12 +32,9 @@ def get_piano_keys():
     # computes paired lists of the frequencies of a piano and their corresponding pitch classes
     # returns: np array of piano frequencies, list of piano pitch classes
     piano_freqs = []#np.zeros(88)
-    piano_freqs.append(27.5)
-    factor = 2.0**(1.0/12)
-    for i in range(1, 88):
-        piano_freqs.append(piano_freqs[i-1] * factor)
+    piano_freqs = 440 * 2**(np.arange(-48, 40)/12.0)
     piano_freqs = [round(x,2) for x in piano_freqs]
-    octave = ["A","A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
+    octave = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
     piano_notes = octave * 7 + octave[:4]
 
     # print piano_freqs
@@ -215,18 +212,18 @@ def identify_pitches(signal, sr=22050):
     temp_path = 'temp.wav'
 
     wavwrite(temp_path, signal, sr)
-    output = identify_pitches_from_path(temp_path)
+    output = identify_pitches_from_path(temp_path, sr)
     remove(temp_path)
 
     return output
 
 
-def identify_pitches_from_path(path):
+def identify_pitches_from_path(path, sr=22050):
     # analyzes a wav file into a vector of pitch intensities
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
 
-    pitches = pitch_track(path, display=False)
+    pitches = pitch_track(path, sr=sr, display=False)
     # pitches = debounce(pitches, tolerance=1.2, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 

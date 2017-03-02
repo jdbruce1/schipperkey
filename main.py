@@ -28,7 +28,7 @@ def record(sr):
     max_frames = sr*60
 
     recording = sounddevice.rec(frames=max_frames, samplerate=sr, channels=1)
-    custom_input("(Press any key to stop recording.)")
+    custom_input("(Press Enter to stop recording.)")
     sounddevice.stop()
 
     return np.trim_zeros(recording)
@@ -99,7 +99,7 @@ def demo_mode():
         melody, sr = load(file)
         name = file
 
-    key = get_key_temp(melody, sr, name) #get_key(melody, name)
+    key = get_key_temp(melody, name, sr) #get_key(melody, name)
     print "Assigned Keys:"
     for i in range(len(key[1])):
         print "\t", str(i+1) + ".", key[1][i]
@@ -127,7 +127,7 @@ def demo_mode():
 
 def custom_input(prompt=""):
     print prompt
-    out = raw_input(prompt)
+    out = raw_input()
     if out is 'q' or out is 'quit' or out is 'exit':
         exit(0)
     return out

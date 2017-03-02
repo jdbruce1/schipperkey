@@ -2,14 +2,14 @@ import numpy as np
 from pitch_identification import identify_pitches
 from librosa import load
 
-cmaj = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19 ,2.39, 3.66, 2.29, 2.88)
+cmaj = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
 cmin = (6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
 cmaj_norm = [x/sum(cmaj) for x in cmaj]
 cmin_norm = [x/sum(cmin) for x in cmin]
 offset_map = {"C": 0, "Db": 1, "D": 2, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "Ab": 8, "A": 9, "Bb": 10, "B": 11}
 reverse_map = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#","A","A#", "B"]
 
-def get_key_temp(melody, sr=22050, name):
+def get_key_temp(melody, name, sr=22050):
     # gets the key from a melody
     # takes a signal, its sample rate, and its name
     # returns the name and a list of top key options in sorted order
@@ -18,6 +18,7 @@ def get_key_temp(melody, sr=22050, name):
     pitch_intensities = np.array(identify_pitches(melody, sr))
 
     key_likelihoods = np.zeros((len(pitch_intensities), 2))
+    print pitch_intensities
 
     for offset_index in range(12):
         key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'major'))
@@ -25,9 +26,9 @@ def get_key_temp(melody, sr=22050, name):
     # print key_likelihoods
 
     threshold = .9 * np.amax(key_likelihoods)
-
+    print key_likelihoods
     best_indices = np.where(key_likelihoods > threshold) #np.unravel_index(np.argmax(key_likelihoods), key_likelihoods.shape)
-
+    print best_indices
     best_offsets = best_indices[0]
     best_modes = best_indices[1]
 
@@ -56,9 +57,9 @@ def get_key_vector(note, mode):
 def get_key_vector_temp(index, mode):
     # as get_key_vector but using pitchlass indices, rather than pitchclasses
     if mode == "major":
-        return roll(cmaj_norm, index)
+        return roll(cmaj, index)
     elif mode == "minor":
-        return roll(cmin_norm, index)
+        return roll(cmin, index)
     return None
 
 def roll(vector, offset):

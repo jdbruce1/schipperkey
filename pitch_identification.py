@@ -157,7 +157,7 @@ def moving_average(pitches, window=5, display=False):
 # def post_process(pitches):
 #     # takes a list of pitches and processes them so as to reduce effects
 
-def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, tolerance=.8, display=False):
+def pitch_track(path, sr=22050, downsample=1, win_size=2048, hop_size=512, tolerance=.8, display=False):
     # uses aubio pitch tracker to turn a signal into a sequence of pitches
     # input: path to a wav file, and options
     # output: sequence of pitches, in Hz
@@ -172,8 +172,8 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
 
     samplerate = s.samplerate
 
-    pitch_o = pitch("yin", win_s, hop_s, samplerate)
-    pitch_o.set_unit("midi")
+    pitch_o = pitch("yinfft", win_s, hop_s, samplerate)
+    #pitch_o.set_unit("midi")
     pitch_o.set_tolerance(tolerance)
 
     pitches = []

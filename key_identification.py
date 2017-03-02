@@ -1,5 +1,6 @@
 import numpy as np
 from pitch_identification import identify_pitches
+from math import sqrt
 from librosa import load
 
 cmaj = (6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
@@ -21,8 +22,11 @@ def get_key_temp(melody, name, sr=22050):
     print pitch_intensities
 
     for offset_index in range(12):
-        key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'major'))
-        key_likelihoods[offset_index,1] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'minor'))
+        # key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'major'))
+        # key_likelihoods[offset_index,1] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'minor'))
+        key_likelihoods[offset_index,0] = compare_key_krumhansl(pitch_intensities, get_key_vector_temp(offset_index, 'major'))
+        key_likelihoods[offset_index,1] = compare_key_krumhansl(pitch_intensities, get_key_vector_temp(offset_index, 'minor'))
+
     # print key_likelihoods
 
     threshold = .9 * np.amax(key_likelihoods)
@@ -46,6 +50,15 @@ def get_key_temp(melody, name, sr=22050):
     return_stuff = [str(x[0]) + ' '+x[1] for x in return_stuff] #+'. Score: '+str(x[2])
 
     return (name, return_stuff)
+
+def compare_key_krumhansl(test, keyvector):
+    x = test
+    y = keyvector
+    xavg = np.mean(x)
+    yavg = np.mean(y)
+    score = np.sum((x-xavg) * (y-yavg)) / sqrt(np.sum((x-xavg)**2)*np.sum((y-yavg)**2))
+    print score
+    return score
 
 def get_key_vector(note, mode):
     if mode == "major":

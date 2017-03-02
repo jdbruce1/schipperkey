@@ -54,6 +54,7 @@ def get_key_vector(note, mode):
     return None
 
 def get_key_vector_temp(index, mode):
+    # as get_key_vector but using pitchlass indices, rather than pitchclasses
     if mode == "major":
         return roll(cmaj_norm, index)
     elif mode == "minor":

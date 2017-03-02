@@ -11,8 +11,9 @@ def get_keys(waves):
     return [get_key_temp(wave, wave) for wave in waves] #[get_key(wave, wave) for wave in waves]
 
 
-def get_key(wave, name):
-    return name, ['C', 'D', 'E', 'F', 'G']
+# def get_key(wave, name):
+#     # temp version lives in key_identification.py
+#     return name, ['C', 'D', 'E', 'F', 'G']
 
 
 def add_note(key, file):

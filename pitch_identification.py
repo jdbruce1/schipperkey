@@ -29,6 +29,8 @@ def wavwrite(filepath, data, sr, norm=True, dtype='int16',):
     sp.io.wavfile.write(filepath, sr, data)
 
 def get_piano_keys():
+    # computes paired lists of the frequencies of a piano and their corresponding pitch classes
+    # returns: np array of piano frequencies, list of piano pitch classes
     piano_freqs = []#np.zeros(88)
     piano_freqs.append(27.5)
     factor = 2.0**(1.0/12)
@@ -45,6 +47,9 @@ def get_piano_keys():
     return np.array(piano_freqs), piano_notes
 
 def snap_to_pitchclass(pitches):
+    # snaps input pitches into bins by pitch class
+    # input: pitch sequence from a pitch tracker [261.625565, 261.625565, 261.625565, 293.65]
+    # output: pitchclass sequence, like ["C","C","C","D"]
     piano_freqs, piano_notes = get_piano_keys()
 
     matched_pitches = np.zeros_like(pitches)
@@ -73,6 +78,9 @@ def snap_to_pitchclass(pitches):
     return matched_notes
 
 def aggregate_pitchclass(matched_notes):
+    # counts the instances of each pitchclass
+    # input: a list of pitchlasses, like ["C","C","C", "D"]
+    # output: a dictionary of the pitchlasses keyed to counts, like {"C":500, "D":200}
     agg_notes = {}
     for matched_note in matched_notes:
         try:
@@ -82,6 +90,9 @@ def aggregate_pitchclass(matched_notes):
     return agg_notes
 
 def vectorize(agg_notes):
+    # turns a dictionary of note names keyed to intensities into a vector
+    # input: agg_notes, like {"C":500, "D":200}
+    # ouput: pitch vector, like [500, 0, 200, ...]
     vector = [] # 0 index corresponds to C
 
     for note_name in ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#","A","A#", "B"]:
@@ -114,41 +125,44 @@ def moving_average(pitches, window=5, display=False):
 #         this_pitch = pitches[index]
 
 
-def debounce(pitches, tolerance = 1.5, display=False):
-    # debounces by removing big jumps in pitch
-    # tolerance should be greater than 1
-    # larger tolerance allows more variance
-
-    #I'm not sure what I think about
-    # 1. this deletes pitches, rather than moving them
-    # 2. note jumps might not meet the tolerance.  Maybe we should be looking for quick up AND down
-    # or vice versa, rather than just a one-way change.  We're looking for spikes, not consistent
-    # pitch change.
-    output = []
-
-    for index in range(1, pitches.size):
-        last_pitch = pitches[index-1]
-        this_pitch = pitches[index]
-        if (last_pitch is 0) and (not this_pitch is 0):
-            # we're leaving from zero, include this pitch
-            output.append(this_pitch)
-        elif (this_pitch < last_pitch*tolerance) and (this_pitch > last_pitch/tolerance):
-            # there's not a huge change, include this pitch
-            output.append(this_pitch)
-
-    output = np.array(output)
-
-    if display:
-        plt.figure()
-        plt.plot(output)
-        plt.show()
-    return output
+# def debounce(pitches, tolerance = 1.5, display=False):
+#     # debounces by removing big jumps in pitch
+#     # tolerance should be greater than 1
+#     # larger tolerance allows more variance
+#
+#     #I'm not sure what I think about
+#     # 1. this deletes pitches, rather than moving them
+#     # 2. note jumps might not meet the tolerance.  Maybe we should be looking for quick up AND down
+#     # or vice versa, rather than just a one-way change.  We're looking for spikes, not consistent
+#     # pitch change.
+#     output = []
+#
+#     for index in range(1, pitches.size):
+#         last_pitch = pitches[index-1]
+#         this_pitch = pitches[index]
+#         if (last_pitch is 0) and (not this_pitch is 0):
+#             # we're leaving from zero, include this pitch
+#             output.append(this_pitch)
+#         elif (this_pitch < last_pitch*tolerance) and (this_pitch > last_pitch/tolerance):
+#             # there's not a huge change, include this pitch
+#             output.append(this_pitch)
+#
+#     output = np.array(output)
+#
+#     if display:
+#         plt.figure()
+#         plt.plot(output)
+#         plt.show()
+#     return output
 
 
 # def post_process(pitches):
 #     # takes a list of pitches and processes them so as to reduce effects
 
 def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, tolerance=.8, display=False):
+    # uses aubio pitch tracker to turn a signal into a sequence of pitches
+    # input: path to a wav file, and options
+    # output: sequence of pitches, in Hz
     from aubio import source, pitch
     samplerate = sr // downsample
     if len( sys.argv ) > 2: samplerate = int(sys.argv[2])
@@ -195,27 +209,28 @@ def pitch_track(path, sr=22050, downsample=1, win_size=4096, hop_size=512, toler
     return output
 
 def identify_pitches(signal, sr=22050):
+    # analyzes a signal into a vector of pitch intensities
+    # hacked together temporary method
+    # returns: a vector, as from identify_pitches_from_path
     temp_path = 'temp.wav'
 
     wavwrite(temp_path, signal, sr)
-
     output = identify_pitches_from_path(temp_path)
-
     remove(temp_path)
 
     return output
 
 
 def identify_pitches_from_path(path):
+    # analyzes a wav file into a vector of pitch intensities
+    # input: path to a wav file
+    # returns: a vector of pitch intensities, starting at C
 
     pitches = pitch_track(path, display=False)
     # pitches = debounce(pitches, tolerance=1.2, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 
-    # print matched_notes
-
     agg_notes = aggregate_pitchclass(matched_notes)
-    # print agg_notes
     return vectorize(agg_notes)
 
 # print identify_pitches('toy_data/Twinkle.wav')

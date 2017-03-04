@@ -7,7 +7,7 @@ import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
 from matplotlib import pyplot as plt
 from librosa import load
-from pitch_identification import identify_pitches_chromagram, identify_pitches
+from pitch_identification import identify_pitches_chromagram, identify_pitches, pitch_track, remove_jumps
 
 def get_piano_keys():
     piano_freqs = []#np.zeros(88)
@@ -123,10 +123,30 @@ def test_pYAAPT(filepath):
     plt.plot(pitch.values, label='pchip interpolation', color='green')
     plt.show()
 
-cmaj_sig, sr = load('toy_data/cmaj_sung.wav')
-# print cmaj_sig
-chrom_vect = identify_pitches_chromagram(cmaj_sig)
+def test_chromagram():
+    cmaj_sig, sr = load('toy_data/cmaj_sung.wav')
+    # print cmaj_sig
+    chrom_vect = identify_pitches_chromagram(cmaj_sig)
 
-print chrom_vect
+    print chrom_vect
 
-# test_pYAAPT('toy_data/Row.wav')
+def test_rj(path):
+    pitches = pitch_track(path, display=True)
+    pitches = remove_jumps(pitches, 30, 50)
+
+    plt.figure()
+    plt.plot(pitches)
+    plt.show()
+
+    pitches = remove_jumps(pitches, 5, 50)
+
+    plt.figure()
+    plt.plot(pitches)
+    plt.show()
+
+    # matched_notes = snap_to_pitchclass(pitches)
+    #
+    # agg_notes = aggregate_pitchclass(matched_notes)
+    # return vectorize(agg_notes)
+
+test_rj('toy_data/gentlemen.wav')

@@ -126,24 +126,34 @@ def moving_average(pitches, window=10, threshold=.1, display=False):
         plt.show()
     return output
 
-def get_note_onsets(pitches):
-    onsets = [0]
-    for i in range(1, pitches):
-        if pitches[i] == 0 and pitches[i-1] == 0:
+def get_note_onsets(pitches, lag=10):
+    onsets = []
+    in_note = False
+    onset = 0
+    for i in range(lag, len(pitches)):
+        if pitches[i] == 0 and pitches[i-lag] == 0:
             continue
-        if pitches[i] == 0 and pitches[i-1] != 0:
-            onsets.append(i-1)
-        up_threshold = pitches[i] * 2**(.5/12)
-        down_threshold = pitches[i] * 2**(-.5/12)
-        if pitches[i-1] == 0 or pitches[i-1] > up_threshold or pitches[i-1] < down_threshold:
-            onsets.append(i)
+        if pitches[i] == 0 and pitches[i-lag] != 0:
+            onsets.append((onset, i-lag))
+            in_note = False
+        up_threshold = pitches[i] * 2**(1.0/12)
+        down_threshold = pitches[i] * 2**(-1.0/12)
+        if pitches[i-lag] == 0 or pitches[i-lag] > up_threshold or pitches[i-lag] < down_threshold:
+            if in_note:
+                onsets.append((onset, i-lag))
+                in_note = False
+        elif not in_note:
+            onset = i-lag
+            in_note = True
+
+    onsets.append((onset, len(pitches)))
     return onsets
 
 
 def average_note_pitch(pitches, onsets, display=False):
     output = np.zeros_like(pitches)
-    for i in range(1, len(onsets)):
-        output[onsets[i-1]:onsets[i]] = np.mean(pitches[onsets[i-1]:onsets[i]])
+    for i in range(len(onsets)):
+        output[onsets[i][0]:onsets[i][1]] = np.mean(pitches[onsets[i][0]:onsets[i][1]])
 
     if display:
         plt.figure()
@@ -285,10 +295,11 @@ def identify_pitches_from_path(path, sr=22050):
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
     plt.ion()
-    pitches = pitch_track(path, sr=sr, display=True)
-    pitches = remove_jumps(pitches, 30, 50, display = True)
+    pitches = pitch_track(path, sr=sr)
+    pitches = remove_jumps(pitches, 30, 50)
     pitches = remove_jumps(pitches, 5, 50, display = True)
-
+    onsets = get_note_onsets(pitches)
+    pitches = average_note_pitch(pitches, onsets, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 
     agg_notes = aggregate_pitchclass(matched_notes)

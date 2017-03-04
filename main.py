@@ -4,16 +4,11 @@ import csv
 import sounddevice
 from librosa import load
 import numpy as np
-from key_identification import get_key_temp
+from key_identification import get_key
 
 
 def get_keys(waves):
-    return [get_key_temp(wave, wave) for wave in waves] #[get_key(wave, wave) for wave in waves]
-
-
-# def get_key(wave, name):
-#     # temp version lives in key_identification.py
-#     return name, ['C', 'D', 'E', 'F', 'G']
+    return [get_key(wave, wave) for wave in waves] #[get_key(wave, wave) for wave in waves]
 
 
 def add_note(key, file):
@@ -99,7 +94,7 @@ def demo_mode():
         melody, sr = load(file)
         name = file
 
-    key = get_key_temp(melody, name, sr) #get_key(melody, name)
+    key = get_key(melody, name, sr) #get_key(melody, name)
     print "Assigned Keys:"
     for i in range(len(key[1])):
         print "\t", str(i+1) + ".", key[1][i]
@@ -144,4 +139,4 @@ else:
     while output is 1:
         output = demo_mode()
 
-# print get_key_temp('toy_data/Twinkle.wav')
+# print get_key('toy_data/Twinkle.wav')

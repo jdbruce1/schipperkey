@@ -101,12 +101,23 @@ def vectorize(agg_notes):
 
     return vector
 
-def moving_average(pitches, window=5, display=False):
+def net_change_in_window(vector, start, end):
+    total = 0
+    for i in range(start+1, end):
+        total += np.abs(vector[i] - vector[i-1])
+    return total
+
+def moving_average(pitches, window=10, threshold=.1, display=False):
     # takes a moving average of the pitches to reduce variance
     # window is double sided .. total will be averaged over 2*window values
     output = np.zeros_like(pitches)
 
     for index in range(window, pitches.size-window):
+        # size is twice window
+        avg_change = net_change_in_window(pitches, index-window, index+window)/2.0/window
+        if avg_change/pitches[index] > threshold:
+            continue
+
         output[index] = np.mean(pitches[index-window:index+window])
 
     if display:
@@ -115,43 +126,68 @@ def moving_average(pitches, window=5, display=False):
         plt.show()
     return output
 
-# def remove_jumps(pitches):
-#
-#     output = []
-#     for index in range(1, pitches.size):
-#         last_pitch = pitches[index-1]
-#         this_pitch = pitches[index]
+def get_note_onsets(pitches):
+    onsets = [0]
+    for i in range(1, pitches):
+        if pitches[i] == 0 and pitches[i-1] == 0:
+            continue
+        if pitches[i] == 0 and pitches[i-1] != 0:
+            onsets.append(i-1)
+        up_threshold = pitches[i] * 2**(.5/12)
+        down_threshold = pitches[i] * 2**(-.5/12)
+        if pitches[i-1] == 0 or pitches[i-1] > up_threshold or pitches[i-1] < down_threshold:
+            onsets.append(i)
+    return onsets
 
 
-# def debounce(pitches, tolerance = 1.5, display=False):
-#     # debounces by removing big jumps in pitch
-#     # tolerance should be greater than 1
-#     # larger tolerance allows more variance
-#
-#     #I'm not sure what I think about
-#     # 1. this deletes pitches, rather than moving them
-#     # 2. note jumps might not meet the tolerance.  Maybe we should be looking for quick up AND down
-#     # or vice versa, rather than just a one-way change.  We're looking for spikes, not consistent
-#     # pitch change.
-#     output = []
-#
-#     for index in range(1, pitches.size):
-#         last_pitch = pitches[index-1]
-#         this_pitch = pitches[index]
-#         if (last_pitch is 0) and (not this_pitch is 0):
-#             # we're leaving from zero, include this pitch
-#             output.append(this_pitch)
-#         elif (this_pitch < last_pitch*tolerance) and (this_pitch > last_pitch/tolerance):
-#             # there's not a huge change, include this pitch
-#             output.append(this_pitch)
-#
-#     output = np.array(output)
-#
-#     if display:
-#         plt.figure()
-#         plt.plot(output)
-#         plt.show()
-#     return output
+def average_note_pitch(pitches, onsets, display=False):
+    output = np.zeros_like(pitches)
+    for i in range(1, len(onsets)):
+        output[onsets[i-1]:onsets[i]] = np.mean(pitches[onsets[i-1]:onsets[i]])
+
+    if display:
+        plt.figure()
+        plt.plot(output)
+        plt.show()
+    return output
+
+def remove_jumps(pitches):
+
+    output = []
+    for index in range(1, pitches.size):
+        last_pitch = pitches[index-1]
+        this_pitch = pitches[index]
+
+
+def debounce(pitches, tolerance = 1.5, display=False):
+    # debounces by removing big jumps in pitch
+    # tolerance should be greater than 1
+    # larger tolerance allows more variance
+
+    #I'm not sure what I think about
+    # 1. this deletes pitches, rather than moving them
+    # 2. note jumps might not meet the tolerance.  Maybe we should be looking for quick up AND down
+    # or vice versa, rather than just a one-way change.  We're looking for spikes, not consistent
+    # pitch change.
+    output = []
+
+    for index in range(1, pitches.size):
+        last_pitch = pitches[index-1]
+        this_pitch = pitches[index]
+        if (last_pitch is 0) and (not this_pitch is 0):
+            # we're leaving from zero, include this pitch
+            output.append(this_pitch)
+        elif (this_pitch < last_pitch*tolerance) and (this_pitch > last_pitch/tolerance):
+            # there's not a huge change, include this pitch
+            output.append(this_pitch)
+
+    output = np.array(output)
+
+    if display:
+        plt.figure()
+        plt.plot(output)
+        plt.show()
+    return output
 
 
 # def post_process(pitches):
@@ -233,9 +269,9 @@ def identify_pitches_from_path(path, sr=22050):
     # analyzes a wav file into a vector of pitch intensities
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
-
+    plt.ion()
     pitches = pitch_track(path, sr=sr, display=True)
-    # pitches = debounce(pitches, tolerance=1.2, display=True)
+    pitches = moving_average(pitches, window=10, display=True)
     matched_notes = snap_to_pitchclass(pitches)
 
     agg_notes = aggregate_pitchclass(matched_notes)

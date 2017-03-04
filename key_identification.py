@@ -10,7 +10,7 @@ cmin_norm = [x/sum(cmin) for x in cmin]
 offset_map = {"C": 0, "Db": 1, "D": 2, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "Ab": 8, "A": 9, "Bb": 10, "B": 11}
 reverse_map = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A","A#", "B"]
 
-def get_key_temp(melody, name, sr=22050):
+def get_key(melody, name, sr=22050):
     # gets the key from a melody
     # takes a signal, its sample rate, and its name
     # returns the name and a list of top key options in sorted order
@@ -22,10 +22,10 @@ def get_key_temp(melody, name, sr=22050):
     print pitch_intensities
 
     for offset_index in range(12):
-        #key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'major'))
-        #key_likelihoods[offset_index,1] = np.dot(pitch_intensities, get_key_vector_temp(offset_index, 'minor'))
-        key_likelihoods[offset_index,0] = compare_key_krumhansl(pitch_intensities, get_key_vector_temp(offset_index, 'major'))
-        key_likelihoods[offset_index,1] = compare_key_krumhansl(pitch_intensities, get_key_vector_temp(offset_index, 'minor'))
+        #key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_ind(offset_index, 'major'))
+        #key_likelihoods[offset_index,1] = np.dot(pitch_intensities, get_key_vector_ind(offset_index, 'minor'))
+        key_likelihoods[offset_index,0] = compare_key_krumhansl(pitch_intensities, get_key_vector_ind(offset_index, 'major'))
+        key_likelihoods[offset_index,1] = compare_key_krumhansl(pitch_intensities, get_key_vector_ind(offset_index, 'minor'))
 
     # print key_likelihoods
 
@@ -66,7 +66,7 @@ def get_key_vector(note, mode):
         return roll(cmin, offset_map[note])
     return None
 
-def get_key_vector_temp(index, mode):
+def get_key_vector_ind(index, mode):
     # as get_key_vector but using pitchlass indices, rather than pitchclasses
     if mode == "major":
         return roll(cmaj, index)

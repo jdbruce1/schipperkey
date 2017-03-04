@@ -151,14 +151,6 @@ def average_note_pitch(pitches, onsets, display=False):
         plt.show()
     return output
 
-def remove_jumps(pitches):
-
-    output = []
-    for index in range(1, pitches.size):
-        last_pitch = pitches[index-1]
-        this_pitch = pitches[index]
-
-
 def debounce(pitches, tolerance = 1.5, display=False):
     # debounces by removing big jumps in pitch
     # tolerance should be greater than 1
@@ -192,6 +184,29 @@ def debounce(pitches, tolerance = 1.5, display=False):
 
 # def post_process(pitches):
 #     # takes a list of pitches and processes them so as to reduce effects
+
+def remove_jumps(pitches, window_size, threshold, display=False):
+    # removes spikes in pitch
+    # if a pitch jumps more than threshold and jumps again before window_size, the jump is removed
+
+    start_peak = 0
+    for index in range(1, pitches.size):
+        last_pitch = pitches[index-1]
+        this_pitch = pitches[index]
+        if abs(this_pitch - last_pitch) > threshold:
+            # there's a big jump here
+            if index - start_peak < window_size:
+                pitches[start_peak:index] = 0
+            else:
+                start_peak = index
+
+    if display:
+        plt.figure()
+        plt.plot(pitches)
+        plt.show()
+
+    return pitches
+
 
 def pitch_track(path, sr=22050, downsample=1, win_size=2048, hop_size=512, tolerance=.8, display=False):
     # uses aubio pitch tracker to turn a signal into a sequence of pitches
@@ -271,7 +286,9 @@ def identify_pitches_from_path(path, sr=22050):
     # returns: a vector of pitch intensities, starting at C
     plt.ion()
     pitches = pitch_track(path, sr=sr, display=True)
-    pitches = moving_average(pitches, window=10, display=True)
+    pitches = remove_jumps(pitches, 30, 50, display = True)
+    pitches = remove_jumps(pitches, 5, 50, display = True)
+
     matched_notes = snap_to_pitchclass(pitches)
 
     agg_notes = aggregate_pitchclass(matched_notes)

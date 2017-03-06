@@ -20,13 +20,13 @@ def check_relative(key1, key2):
         else:
             return False
 
-def get_key(melody, name, sr=22050):
+def get_key(melody, name, method='yinfft', sr=22050):
     # gets the key from a melody
     # takes a signal, its sample rate, and its name
     # returns the name and a list of top key options in sorted order
     # melody, sr = load(path)
 
-    pitch_intensities = np.array(identify_pitches(melody, sr))
+    pitch_intensities = np.array(identify_pitches(melody, method, sr=sr))
 
     key_likelihoods = np.zeros((len(pitch_intensities), 2))
     print pitch_intensities

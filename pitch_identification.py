@@ -222,7 +222,7 @@ def remove_jumps(pitches, window_size, threshold, display=False):
     return pitches
 
 
-def pitch_track(path, sr=22050, downsample=1, win_size=2048, hop_size=512, tolerance=.8, display=False):
+def pitch_track(path, method='yinfft', sr=22050, downsample=1, win_size=2048, hop_size=512, tolerance=.8, display=False):
     # uses aubio pitch tracker to turn a signal into a sequence of pitches
     # input: path to a wav file, and options
     # output: sequence of pitches, in Hz
@@ -237,9 +237,10 @@ def pitch_track(path, sr=22050, downsample=1, win_size=2048, hop_size=512, toler
 
     samplerate = s.samplerate
 
-    pitch_o = pitch("yinfft", win_s, hop_s, samplerate)
+    pitch_o = pitch(method, win_s, hop_s, samplerate)
     #pitch_o.set_unit("midi")
     pitch_o.set_tolerance(tolerance)
+    pitch_o.set_silence(-35.0)
 
     pitches = []
     confidences = []
@@ -271,35 +272,35 @@ def pitch_track(path, sr=22050, downsample=1, win_size=2048, hop_size=512, toler
 
     return output
 
-def identify_pitches_chromagram(signal, sr=22050):
-    chromagram = librosa.feature.chroma_stft(y=signal, sr=sr)
+# def identify_pitches_chromagram(signal, sr=22050):
+#     chromagram = librosa.feature.chroma_stft(y=signal, sr=sr)
+#
+#     plt.subplot(4,2,5)
+#     librosa.display.specshow(chromagram, y_axis='chroma', x_axis='time')
+#     plt.colorbar()
+#     plt.show()
+#     chrom_sum = np.sum(chromagram, axis=1)
+#     return chrom_sum
 
-    plt.subplot(4,2,5)
-    librosa.display.specshow(chromagram, y_axis='chroma', x_axis='time')
-    plt.colorbar()
-    plt.show()
-    chrom_sum = np.sum(chromagram, axis=1)
-    return chrom_sum
-
-def identify_pitches(signal, sr=22050):
+def identify_pitches(signal, method, sr=22050):
     # analyzes a signal into a vector of pitch intensities
     # hacked together temporary method
     # returns: a vector, as from identify_pitches_from_path
     temp_path = 'temp.wav'
 
     wavwrite(temp_path, signal, sr)
-    output = identify_pitches_from_path(temp_path, sr)
+    output = identify_pitches_from_path(temp_path, method, sr=sr)
     remove(temp_path)
 
     return output
 
 
-def identify_pitches_from_path(path, sr=22050):
+def identify_pitches_from_path(path, method, sr=22050):
     # analyzes a wav file into a vector of pitch intensities
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
     plt.ion()
-    pitches = pitch_track(path, sr=sr,display=True)
+    pitches = pitch_track(path, method=method, sr=sr,display=True)
     pitches = remove_jumps(pitches, 15, 200, display=True)
     pitches = remove_jumps(pitches, 5, 200, display = True)
     onsets = get_note_onsets(pitches)

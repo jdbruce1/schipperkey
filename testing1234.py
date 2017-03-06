@@ -7,6 +7,7 @@ import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
 from matplotlib import pyplot as plt
 from librosa import load
+import librosa
 from pitch_identification import identify_pitches_chromagram, identify_pitches, pitch_track, remove_jumps
 
 def get_piano_keys():
@@ -132,21 +133,33 @@ def test_chromagram():
 
 def test_rj(path):
     pitches = pitch_track(path, display=True)
-    pitches = remove_jumps(pitches, 30, 50)
+    # pitches = remove_jumps(pitches, 30, 50)
+    #
+    # plt.figure()
+    # plt.plot(pitches)
+    # plt.show()
 
-    plt.figure()
-    plt.plot(pitches)
-    plt.show()
-
-    pitches = remove_jumps(pitches, 5, 50)
-
-    plt.figure()
-    plt.plot(pitches)
-    plt.show()
+    pitches = remove_jumps(pitches, 5, 50, display=True)
 
     # matched_notes = snap_to_pitchclass(pitches)
     #
     # agg_notes = aggregate_pitchclass(matched_notes)
     # return vectorize(agg_notes)
 
+def test_whistle_id(path):
+    mfcc = librosa.cqt(load(path)[0])
+    plt.figure()
+    librosa.display.specshow(mfcc)
+    plt.show()
+
+# whistled examples
+
+test_rj('toy_data/twinkle.wav')
+test_rj('toy_data/jingle.wav')
+test_rj('toy_data/silent.wav')
 test_rj('toy_data/gentlemen.wav')
+test_rj('toy_data/mountain.wav')
+test_rj('toy_data/wassailing.wav')
+test_rj('toy_data/cminor_triad.wav')
+test_rj('toy_data/cmajor_triad.wav')
+test_rj('toy_data/cmaj_sung.wav')

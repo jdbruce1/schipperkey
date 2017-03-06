@@ -311,3 +311,8 @@ def identify_pitches_from_path(path, method, sr=22050):
     return vectorize(agg_notes)
 
 # print identify_pitches('toy_data/Twinkle.wav')
+
+
+def bin_pitch_track(pitches, bins_per_pitchclass):
+    pass
+

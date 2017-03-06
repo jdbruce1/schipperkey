@@ -4,7 +4,7 @@ import csv
 import sounddevice
 from librosa import load
 import numpy as np
-from key_identification import get_key, check_relative
+from key_identification import get_key, check_relative, get_key_binned
 
 
 def get_keys(waves, labels=None):
@@ -127,7 +127,7 @@ def demo_mode():
     while method not in ['w', 'W', 'whistled', 'Whistled', 'h', 'H', 'hummed', 'Hummed', 's', 'S', 'sung', 'Sung', 'o', 'O', 'other', 'Other']:
         method = custom_input("I did not recognize that method.  Please input again: (w, h, s, or o?")
 
-    key = get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr) #get_key(melody, name)
+    key = get_key_binned(melody, name, method=get_pitch_tracker_from_method(method), sr=sr) #get_key(melody, name)
     print "Assigned Keys:"
     for i in range(len(key[1])):
         print "\t", str(i+1) + ".", key[1][i]

@@ -126,7 +126,7 @@ def moving_average(pitches, window=10, threshold=.1, display=False):
         plt.show()
     return output
 
-def get_note_onsets(pitches, lag=10):
+def get_note_onsets(pitches, lag=5):
     onsets = []
     in_note = False
     onset = 0
@@ -134,19 +134,23 @@ def get_note_onsets(pitches, lag=10):
         if pitches[i] == 0 and pitches[i-lag] == 0:
             continue
         if pitches[i] == 0 and pitches[i-lag] != 0:
-            onsets.append((onset, i-lag))
-            in_note = False
-        up_threshold = pitches[i] * 2**(1.0/12)
-        down_threshold = pitches[i] * 2**(-1.0/12)
-        if pitches[i-lag] == 0 or pitches[i-lag] > up_threshold or pitches[i-lag] < down_threshold:
+            if in_note:
+                onsets.append((onset, i-lag))
+                in_note = False
+            continue
+        up_threshold = pitches[i] * 2**(.8/12)
+        down_threshold = pitches[i] * 2**(-.8/12)
+        if pitches[i-lag] > up_threshold or pitches[i-lag] < down_threshold:
             if in_note:
                 onsets.append((onset, i-lag))
                 in_note = False
         elif not in_note:
             onset = i-lag
             in_note = True
-
-    onsets.append((onset, len(pitches)))
+        if in_note and pitches[i-lag] == 0:
+            print "in note when previous was zero", pitches[i], pitches[i-lag], i
+    if pitches[-1] != 0:
+        onsets.append((onset, len(pitches)))
     return onsets
 
 
@@ -295,9 +299,9 @@ def identify_pitches_from_path(path, sr=22050):
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
     plt.ion()
-    pitches = pitch_track(path, sr=sr)
-    pitches = remove_jumps(pitches, 30, 50)
-    pitches = remove_jumps(pitches, 5, 50, display = True)
+    pitches = pitch_track(path, sr=sr,display=True)
+    pitches = remove_jumps(pitches, 15, 200, display=True)
+    pitches = remove_jumps(pitches, 5, 200, display = True)
     onsets = get_note_onsets(pitches)
     pitches = average_note_pitch(pitches, onsets, display=True)
     matched_notes = snap_to_pitchclass(pitches)

@@ -8,7 +8,17 @@ cmin = (6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
 cmaj_norm = [x/sum(cmaj) for x in cmaj]
 cmin_norm = [x/sum(cmin) for x in cmin]
 offset_map = {"C": 0, "Db": 1, "D": 2, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7, "Ab": 8, "A": 9, "Bb": 10, "B": 11}
-reverse_map = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A","A#", "B"]
+reverse_map = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A","Bb", "B"]
+
+
+def check_relative(key1, key2):
+    if len(key1) >= 2 and key1[-1] == 'm':
+        return reverse_map[(offset_map[key1[:-1]] + 3) % 12] == key2 or key1[:-1] == key2
+    else:
+        if len(key2) >= 2 and key2[-1] == 'm':
+            return reverse_map[(offset_map[key2[:-1]] + 3) % 12] == key1 or key2[:-1] == key1
+        else:
+            return False
 
 def get_key(melody, name, sr=22050):
     # gets the key from a melody
@@ -29,7 +39,7 @@ def get_key(melody, name, sr=22050):
 
     # print key_likelihoods
 
-    threshold = .9 * np.amax(key_likelihoods)
+    threshold = -1
     print key_likelihoods
     best_indices = np.where(key_likelihoods > threshold) #np.unravel_index(np.argmax(key_likelihoods), key_likelihoods.shape)
     print best_indices
@@ -40,16 +50,16 @@ def get_key(melody, name, sr=22050):
 
     for i in range(len(best_offsets)):
         if best_modes[i] == 1:
-            best_mode = 'minor'
+            best_mode = 'm'
         else:
-            best_mode = 'major'
+            best_mode = ''
         return_stuff.append([reverse_map[best_offsets[i]], best_mode, key_likelihoods[best_offsets[i], best_modes[i]]])
 
     return_stuff = sorted(return_stuff, key=lambda x: x[2],reverse=True)
 
-    return_stuff = [str(x[0]) + ' '+x[1] for x in return_stuff] #+'. Score: '+str(x[2])
+    return_stuff = [str(x[0]) +x[1] for x in return_stuff] #+'. Score: '+str(x[2])
 
-    return (name, return_stuff)
+    return (name, return_stuff[:5])
 
 def compare_key_krumhansl(test, keyvector):
     x = test

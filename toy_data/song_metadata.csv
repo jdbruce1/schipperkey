@@ -1,9 +1,12 @@
-Twinkle,Jacob,C,Hummed,Twinkle Twinkle Little Star
-Row,Will,B,Whistled,Row Row Row Your Boat
-Mary,Jacob,A,Whistled,Mary Had a Little Lamb
-Jingle,Will,Db,Hummed,Jingle Bells
-Silent,Jacob,B,Hummed,Silent Night
-Gentlemen,Will,Cm,Sung,God Rest Ye Merry Gentlemen
-Mountain,Jacob,Db,Sung,Go Tell it on the Mountain
-Wassailing,Will,F#,Hummed
-Bethlehem,Jacob,A,Whistled,O Little Town of Bethlehem
+Twinkle,C,Jacob,Hummed,Twinkle Twinkle Little Star
+Row,B,Will,Whistled,Row Row Row Your Boat
+Mary,A,Jacob,Whistled,Mary Had a Little Lamb
+Jingle,Db,Will,Hummed,Jingle Bells
+Silent,Bm,Jacob,Hummed,Silent Night
+Gentlemen,Cm,Will,Sung,God Rest Ye Merry Gentlemen
+Mountain,Db,Jacob,Sung,Go Tell it on the Mountain
+Wassailing,G,Will,Hummed
+Bethlehem,A,Jacob,Whistled,O Little Town of Bethlehem
+cminor_triad,Cm,Jacob,Piano
+cmajor_triad,C,Jacob,Piano
+cmaj_sung,C,Jacob,Sung

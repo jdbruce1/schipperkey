@@ -4,11 +4,16 @@ import csv
 import sounddevice
 from librosa import load
 import numpy as np
-from key_identification import get_key
+from key_identification import get_key, check_relative
 
 
 def get_keys(waves):
-    return [get_key(wave, wave) for wave in waves] #[get_key(wave, wave) for wave in waves]
+    return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves] #[get_key(wave, wave) for wave in waves]
+
+
+def get_key_from_file(filename, name):
+    melody, sr = load(filename)
+    return get_key(melody, name, sr)
 
 
 def add_note(key, file):
@@ -16,7 +21,23 @@ def add_note(key, file):
 
 
 def score_keys(algorithm, correct):
-    return [(10, algorithm[key][0], correct[key][1], key) for key in algorithm.keys()]
+    return [(score_key(algorithm[key], correct[key][0]), algorithm[key], correct[key][0], key) for key in algorithm.keys()]
+
+
+def score_key(assigned_keys, correct_key):
+    if assigned_keys[0] == correct_key:
+        return 100
+    total = 0
+    try:
+        index = assigned_keys.index(correct_key)
+        total += 40 + 10 * (len(assigned_keys) - 1 - index)
+    except StandardError:
+        pass
+
+    if check_relative(assigned_keys[0], correct_key):
+        total += 10
+
+    return total
 
 
 def record(sr):
@@ -49,7 +70,7 @@ def test_mode():
     else:
         labels = dict(read_label_file(label_file))
 
-    waves = [path for path in os.listdir(folder) if os.path.splitext(path)[1] == ".wav"]
+    waves = [folder + "/" + path for path in os.listdir(folder) if os.path.splitext(path)[1] == ".wav"]
     output_keys = dict(get_keys(waves))
     if labels is not None:
         scores = score_keys(output_keys, labels)
@@ -59,7 +80,7 @@ def test_mode():
 
     for melody in output:
         if len(melody) is 4:
-            print "Assigned Key:", melody[1]
+            print "Assigned Keys:", melody[1]
             print "Correct Key:", melody[2]
             print "Score:", melody[0]
             print "Filename:", melody[3]

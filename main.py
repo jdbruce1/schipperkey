@@ -7,14 +7,22 @@ import numpy as np
 from key_identification import get_key, check_relative
 
 
-def get_keys(waves):
-    return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves] #[get_key(wave, wave) for wave in waves]
+def get_keys(waves, labels=None):
+    if labels is not None:
+        return [get_key_from_file(wave, os.path.basename(wave), labels[os.path.basename(wave)][2]) for wave in waves] #[get_key(wave, wave) for wave in waves]
+    else:
+        return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves]
 
 
-def get_key_from_file(filename, name):
+def get_key_from_file(filename, name, method="hummed"):
     melody, sr = load(filename)
-    return get_key(melody, name, sr)
+    return get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
 
+
+def get_pitch_tracker_from_method(method):
+    if method.lower()[0] == 'w':
+        return 'fcomb'
+    return 'yinfft'
 
 def add_note(key, file):
     return load(file)
@@ -71,7 +79,7 @@ def test_mode():
         labels = dict(read_label_file(label_file))
 
     waves = [folder + "/" + path for path in os.listdir(folder) if os.path.splitext(path)[1] == ".wav"]
-    output_keys = dict(get_keys(waves))
+    output_keys = dict(get_keys(waves, labels))
     if labels is not None:
         scores = score_keys(output_keys, labels)
         output = scores
@@ -99,7 +107,7 @@ def demo_mode():
         response = 'y'
         while response in ['y', 'Y', 'yes', 'Yes']:
             custom_input("Press Enter to begin recording your melody.")
-            sr = 8000
+            sr = 22050
             recording = record(sr)
             custom_input("Press Enter to play the recording back.")
             sounddevice.play(recording, sr)
@@ -115,7 +123,11 @@ def demo_mode():
         melody, sr = load(file)
         name = file
 
-    key = get_key(melody, name, sr) #get_key(melody, name)
+    method = custom_input("How was this melody performed? (Whistled (w), Hummed (h), Sung (s), or Other (o)?")
+    while method not in ['w', 'W', 'whistled', 'Whistled', 'h', 'H', 'hummed', 'Hummed', 's', 'S', 'sung', 'Sung', 'o', 'O', 'other', 'Other']:
+        method = custom_input("I did not recognize that method.  Please input again: (w, h, s, or o?")
+
+    key = get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr) #get_key(melody, name)
     print "Assigned Keys:"
     for i in range(len(key[1])):
         print "\t", str(i+1) + ".", key[1][i]

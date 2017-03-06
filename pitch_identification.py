@@ -240,6 +240,7 @@ def pitch_track(path, sr=22050, downsample=1, win_size=2048, hop_size=512, toler
     pitch_o = pitch("yinfft", win_s, hop_s, samplerate)
     #pitch_o.set_unit("midi")
     pitch_o.set_tolerance(tolerance)
+    #pitch_o.set_silence(-40.0)
 
     pitches = []
     confidences = []
@@ -300,8 +301,8 @@ def identify_pitches_from_path(path, sr=22050):
     # returns: a vector of pitch intensities, starting at C
     plt.ion()
     pitches = pitch_track(path, sr=sr,display=True)
-    pitches = remove_jumps(pitches, 15, 200, display=True)
-    pitches = remove_jumps(pitches, 5, 200, display = True)
+    pitches = remove_jumps(pitches, 15, 200, display=False)
+    pitches = remove_jumps(pitches, 5, 200, display = False)
     onsets = get_note_onsets(pitches)
     pitches = average_note_pitch(pitches, onsets, display=True)
     matched_notes = snap_to_pitchclass(pitches)

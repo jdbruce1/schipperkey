@@ -86,16 +86,22 @@ def test_mode():
     else:
         output = [(line[0][0], line[1]) for line in output_keys]
 
+    total_score = 0
     for melody in output:
         if len(melody) is 4:
             print "Assigned Keys:", melody[1]
             print "Correct Key:", melody[2]
             print "Score:", melody[0]
+            total_score += melody[0]
             print "Filename:", melody[3]
         else:
             print "Assigned Key:", melody[0]
             print "Filename:", melody[1]
         print
+
+    print "Average Score:", 1.0*total_score/len(output)
+    print
+
     return 0
 
 

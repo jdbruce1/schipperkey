@@ -44,6 +44,38 @@ def get_piano_keys():
     # print len(piano_notes)
     return np.array(piano_freqs), piano_notes
 
+def bin_pitches(pitches, bins_per_pitchclass):
+
+    top_piano_note =  440*2**(39.0/12)
+    bottom_piano_note = 440*2**(-48.0/12)
+
+    piano_freqs, piano_notes = get_piano_keys()
+
+    num_bins = 88 * bins_per_pitchclass
+
+    bin_edges =  bottom_piano_note * (2**(-.5/12)) * np.logspace(0, 88.0/12, num_bins+1, base=2)
+
+    print bin_edges
+
+    bin_indices = np.searchsorted(bin_edges, pitches) - 1
+
+    bin_energies = np.zeros(num_bins)
+
+    pitches[pitches > top_piano_note] = 0
+
+    for pi in range(len(pitches)):
+        # print "Index: ", pi
+        # print "Tracked Pitch: ", pitches[pi]
+        bi = bin_indices[pi]
+        # print "Bin index: ", bi
+        # print "Bin start: ", bin_edges[bi], "Bin stop: ", bin_edges[bi+1]
+        if bi != -1:
+            bin_energies[bi] += 1
+        # print
+
+    return bin_energies
+
+
 def snap_to_pitchclass(pitches):
     # snaps input pitches into bins by pitch class
     # input: pitch sequence from a pitch tracker [261.625565, 261.625565, 261.625565, 293.65]

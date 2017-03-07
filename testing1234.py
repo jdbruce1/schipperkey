@@ -8,7 +8,8 @@ import amfm_decompy.basic_tools as basic
 from matplotlib import pyplot as plt
 from librosa import load
 import librosa
-from pitch_identification import identify_pitches_chromagram, identify_pitches, pitch_track, remove_jumps
+from pitch_identification import identify_pitches, pitch_track, remove_jumps, bin_pitches, get_note_onsets, average_note_pitch
+# import pitch_identification
 
 def get_piano_keys():
     piano_freqs = []#np.zeros(88)
@@ -152,14 +153,15 @@ def test_whistle_id(path):
     librosa.display.specshow(mfcc)
     plt.show()
 
+def test_bins(path):
+    pitches = pitch_track(path, method='yinfft', sr=22050,display=False)
+    pitches = remove_jumps(pitches, 15, 200, display=False)
+    pitches = remove_jumps(pitches, 5, 200, display = False)
+    onsets = get_note_onsets(pitches)
+    pitches = average_note_pitch(pitches, onsets, display=False)
+
+    print bin_pitches(pitches, 8)
+
 # whistled examples
 
-test_rj('toy_data/twinkle.wav')
-test_rj('toy_data/jingle.wav')
-test_rj('toy_data/silent.wav')
-test_rj('toy_data/gentlemen.wav')
-test_rj('toy_data/mountain.wav')
-test_rj('toy_data/wassailing.wav')
-test_rj('toy_data/cminor_triad.wav')
-test_rj('toy_data/cmajor_triad.wav')
-test_rj('toy_data/cmaj_sung.wav')
+test_bins('toy_data/twinkle.wav')

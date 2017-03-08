@@ -8,7 +8,8 @@ import amfm_decompy.basic_tools as basic
 from matplotlib import pyplot as plt
 from librosa import load
 import librosa
-from pitch_identification import identify_pitches, pitch_track, remove_jumps, bin_pitches, get_note_onsets, average_note_pitch
+from pitch_identification import identify_pitches, pitch_track, remove_jumps, bin_pitches, get_note_onsets, average_note_pitch, identify_pitches_binned, binclass
+from key_identification import get_key_binned
 # import pitch_identification
 
 def get_piano_keys():
@@ -162,6 +163,21 @@ def test_bins(path):
 
     print bin_pitches(pitches, 8)
 
+def test_id_bins(path):
+    bin_energies = identify_pitches_binned(path, 1, 'yinfft', sr=22050)
+    print bin_energies
+    print len(bin_energies)
+
+def test_binclass(path):
+    # bin_energies = identify_pitches_binned(path, 1, 'yinfft', sr=22050)
+    bin_energies = np.arange(88*2)
+    print binclass(bin_energies,2)
+
+def test_key_bin(path):
+    print get_key_binned(path, 'cmajor triad')
+
+
+
 # whistled examples
 
-test_bins('toy_data/twinkle.wav')
+test_key_bin('toy_data/cmajor_triad.wav')

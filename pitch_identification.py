@@ -55,7 +55,7 @@ def bin_pitches(pitches, bins_per_pitchclass):
 
     bin_edges =  bottom_piano_note * (2**(-.5/12)) * np.logspace(0, 88.0/12, num_bins+1, base=2)
 
-    print bin_edges
+    # print bin_edges
 
     bin_indices = np.searchsorted(bin_edges, pitches) - 1
 
@@ -74,6 +74,28 @@ def bin_pitches(pitches, bins_per_pitchclass):
         # print
 
     return bin_energies
+
+def binclass(bin_energies, bins_per_pitchclass):
+    # takes 88*bins_per_pitchclass bin_energies and maps to 12*bins_per_pitchclass bin_energies
+    # kind of like a chromagram
+
+    # print "Num bins:",len(bin_energies)
+    # print "Bins per pitchclass:",bins_per_pitchclass
+    # print "Bin energies:", bin_energies
+    # print
+    # bin_energies[-1] = 100
+    oct_len = 12*bins_per_pitchclass
+
+    octaves = np.zeros((8,oct_len))
+    for oct_ind in range(8):
+        try:
+            octaves[oct_ind] = bin_energies[oct_ind*oct_len:(oct_ind+1)*oct_len]
+        except ValueError:
+            octaves[oct_ind,:len(bin_energies)-oct_ind*oct_len] = bin_energies[oct_ind*oct_len:]
+            octaves[oct_ind,len(bin_energies)-oct_ind*oct_len:] = np.nan
+
+    binclass = np.nansum(octaves, axis=0) / np.isfinite(octaves).sum(0) # normalize by number of notes counted
+    return np.roll(binclass, -3) # roll back to align c to 0 index (rather than A)
 
 
 def snap_to_pitchclass(pitches):
@@ -344,7 +366,14 @@ def identify_pitches_from_path(path, method, sr=22050):
 
 # print identify_pitches('toy_data/Twinkle.wav')
 
+def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050):
+    # plt.ion()
+    pitches = pitch_track(path, method=method, sr=sr,display=False)
+    pitches = remove_jumps(pitches, 15, 200, display=False)
+    pitches = remove_jumps(pitches, 5, 200, display = False)
+    onsets = get_note_onsets(pitches)
+    pitches = average_note_pitch(pitches, onsets, display=False)
 
-def bin_pitch_track(pitches, bins_per_pitchclass):
-    pass
+    binned_pitches = bin_pitches(pitches, bins_per_pitchclass)
 
+    return binclass(binned_pitches, bins_per_pitchclass)

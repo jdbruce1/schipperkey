@@ -4,7 +4,7 @@ import csv
 import sounddevice
 from librosa import load
 import numpy as np
-from key_identification import get_key, check_relative, get_key_binned
+from key_identification import get_key_from_path, check_relative, get_key_binned
 
 
 def get_keys(waves, labels=None):
@@ -14,9 +14,9 @@ def get_keys(waves, labels=None):
         return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves]
 
 
-def get_key_from_file(filename, name, method="hummed"):
-    melody, sr = load(filename)
-    return get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
+# def get_key_from_file(filename, name, method="hummed"):
+#     melody, sr = load(filename)
+#     return get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
 
 
 def get_pitch_tracker_from_method(method):
@@ -87,12 +87,15 @@ def test_mode():
         output = [(line[0][0], line[1]) for line in output_keys]
 
     total_score = 0
+    num_zeros = 0
     for melody in output:
         if len(melody) is 4:
             print "Assigned Keys:", melody[1]
             print "Correct Key:", melody[2]
             print "Score:", melody[0]
             total_score += melody[0]
+            if melody[0] == 0:
+                num_zeros += 1
             print "Filename:", melody[3]
         else:
             print "Assigned Key:", melody[0]
@@ -100,6 +103,7 @@ def test_mode():
         print
 
     print "Average Score:", 1.0*total_score/len(output)
+    print "Number of zero scores:", num_zeros
     print
 
     return 0

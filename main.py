@@ -4,14 +4,14 @@ import csv
 import sounddevice
 from librosa import load
 import numpy as np
-from key_identification import get_key_from_path, check_relative, get_key_binned
+from key_identification import check_relative, get_key_binned, get_key
 
 
 def get_keys(waves, labels=None):
     if labels is not None:
-        return [get_key_from_file(wave, os.path.basename(wave), labels[os.path.basename(wave)][2]) for wave in waves] #[get_key(wave, wave) for wave in waves]
+        return [get_key_binned(wave, os.path.basename(wave), method=get_pitch_tracker_from_method(labels[os.path.basename(wave)][2])) for wave in waves] #[get_key(wave, wave) for wave in waves]
     else:
-        return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves]
+        return [get_key_binned(wave, os.path.basename(wave), method="yinfft") for wave in waves]
 
 
 # def get_key_from_file(filename, name, method="hummed"):

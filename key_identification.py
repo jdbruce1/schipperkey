@@ -1,5 +1,5 @@
 import numpy as np
-from pitch_identification import identify_pitches_binned
+from pitch_identification import identify_pitches_binned, identify_pitches
 from math import sqrt
 from librosa import load
 
@@ -59,46 +59,46 @@ def check_relative(key1, key2):
 #
 #     return (name, return_stuff[:5])
 
-# def get_key(melody, name, method='yinfft', sr=22050):
-#     # gets the key from a melody
-#     # takes a signal, its sample rate, and its name
-#     # returns the name and a list of top key options in sorted order
-#     # melody, sr = load(path)
-#
-#     pitch_intensities = np.array(identify_pitches(melody, method, sr=sr))
-#
-#     key_likelihoods = np.zeros((len(pitch_intensities), 2))
-#     print pitch_intensities
-#
-#     for offset_index in range(12):
-#         #key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_ind(offset_index, 'major'))
-#         #key_likelihoods[offset_index,1] = np.dot(pitch_intensities, get_key_vector_ind(offset_index, 'minor'))
-#         key_likelihoods[offset_index,0] = compare_key_krumhansl(pitch_intensities, get_key_vector_ind(offset_index, 'major'))
-#         key_likelihoods[offset_index,1] = compare_key_krumhansl(pitch_intensities, get_key_vector_ind(offset_index, 'minor'))
-#
-#     # print key_likelihoods
-#
-#     threshold = -1
-#     print key_likelihoods
-#     best_indices = np.where(key_likelihoods > threshold) #np.unravel_index(np.argmax(key_likelihoods), key_likelihoods.shape)
-#     print best_indices
-#     best_offsets = best_indices[0]
-#     best_modes = best_indices[1]
-#
-#     return_stuff = []
-#
-#     for i in range(len(best_offsets)):
-#         if best_modes[i] == 1:
-#             best_mode = 'm'
-#         else:
-#             best_mode = ''
-#         return_stuff.append([reverse_map[best_offsets[i]], best_mode, key_likelihoods[best_offsets[i], best_modes[i]]])
-#
-#     return_stuff = sorted(return_stuff, key=lambda x: x[2],reverse=True)
-#
-#     return_stuff = [str(x[0]) +x[1] for x in return_stuff] #+'. Score: '+str(x[2])
-#
-#     return (name, return_stuff[:5])
+def get_key(melody, name, method='yinfft', sr=22050):
+    # gets the key from a melody
+    # takes a signal, its sample rate, and its name
+    # returns the name and a list of top key options in sorted order
+    # melody, sr = load(path)
+
+    pitch_intensities = np.array(identify_pitches(melody, method, sr=sr))
+
+    key_likelihoods = np.zeros((len(pitch_intensities), 2))
+    print pitch_intensities
+
+    for offset_index in range(12):
+        #key_likelihoods[offset_index,0] = np.dot(pitch_intensities, get_key_vector_ind(offset_index, 'major'))
+        #key_likelihoods[offset_index,1] = np.dot(pitch_intensities, get_key_vector_ind(offset_index, 'minor'))
+        key_likelihoods[offset_index,0] = compare_key_krumhansl(pitch_intensities, get_key_vector_ind(offset_index, 'major'))
+        key_likelihoods[offset_index,1] = compare_key_krumhansl(pitch_intensities, get_key_vector_ind(offset_index, 'minor'))
+
+    # print key_likelihoods
+
+    threshold = -1
+    print key_likelihoods
+    best_indices = np.where(key_likelihoods > threshold) #np.unravel_index(np.argmax(key_likelihoods), key_likelihoods.shape)
+    print best_indices
+    best_offsets = best_indices[0]
+    best_modes = best_indices[1]
+
+    return_stuff = []
+
+    for i in range(len(best_offsets)):
+        if best_modes[i] == 1:
+            best_mode = 'm'
+        else:
+            best_mode = ''
+        return_stuff.append([reverse_map[best_offsets[i]], best_mode, key_likelihoods[best_offsets[i], best_modes[i]]])
+
+    return_stuff = sorted(return_stuff, key=lambda x: x[2],reverse=True)
+
+    return_stuff = [str(x[0]) +x[1] for x in return_stuff] #+'. Score: '+str(x[2])
+
+    return (name, return_stuff[:5])
 
 def compare_key_krumhansl(test, keyvector):
     x = test
@@ -149,7 +149,7 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
     # returns the name and a list of top key options in sorted order
 
     # melody, sr = load(path)
-    bins_per_pitchclass = 1
+    bins_per_pitchclass = 3
     bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr))
     # bin_intensities = [5, 40, 2, 17, 0, 57, 52, 8, 66, 10, 35, 2]
     # bin_intensities = np.repeat(bin_intensities, bins_per_pitchclass)
@@ -181,6 +181,10 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
 
     return_stuff = sorted(return_stuff, key=lambda x: x[2],reverse=True)
 
-    return_stuff = [str(x[0]) +x[1] + str(x[3]) for x in return_stuff] #+'. Score: '+str(x[2])
+    return_stuff = [str(x[0]) +x[1] for x in return_stuff] #+'. Score: '+str(x[2])
+
+    # Jacob: I took out the str(x[3]) so we could actually get a score
+
+    # print return_stuff
 
     return (name, return_stuff[:5])

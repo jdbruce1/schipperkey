@@ -174,10 +174,6 @@ def test_binclass(path):
     print binclass(bin_energies,2)
 
 def test_key_bin(path):
-    print get_key_binned(path, 'cmajor triad')
+    print get_key_binned(path, 'redblack ')
 
-
-
-# whistled examples
-
-test_key_bin('toy_data/cmajor_triad.wav')
+test_key_bin('full_dataset/redblack_s_f#.wav')

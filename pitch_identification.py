@@ -69,7 +69,9 @@ def bin_pitches(pitches, bins_per_pitchclass):
         bi = bin_indices[pi]
         # print "Bin index: ", bi
         # print "Bin start: ", bin_edges[bi], "Bin stop: ", bin_edges[bi+1]
-        if bi != -1:
+        if bi != -1 and not (bi >= len(bin_energies)):
+            # print "Bi",bi
+            # print len(pitches)
             bin_energies[bi] += 1
         # print
 
@@ -354,11 +356,11 @@ def identify_pitches_from_path(path, method, sr=22050):
     # input: path to a wav file
     # returns: a vector of pitch intensities, starting at C
     plt.ion()
-    pitches = pitch_track(path, method=method, sr=sr,display=True)
-    pitches = remove_jumps(pitches, 15, 200, display=True)
-    pitches = remove_jumps(pitches, 5, 200, display = True)
+    pitches = pitch_track(path, method=method, sr=sr,display=False)
+    pitches = remove_jumps(pitches, 15, 200, display=False)
+    pitches = remove_jumps(pitches, 5, 200, display = False)
     onsets = get_note_onsets(pitches)
-    pitches = average_note_pitch(pitches, onsets, display=True)
+    pitches = average_note_pitch(pitches, onsets, display=False)
     matched_notes = snap_to_pitchclass(pitches)
 
     agg_notes = aggregate_pitchclass(matched_notes)
@@ -368,12 +370,18 @@ def identify_pitches_from_path(path, method, sr=22050):
 
 def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050):
     # plt.ion()
+    # print "Path:", path
+    # print "Method:", method
     pitches = pitch_track(path, method=method, sr=sr,display=False)
     pitches = remove_jumps(pitches, 15, 200, display=False)
     pitches = remove_jumps(pitches, 5, 200, display = False)
     onsets = get_note_onsets(pitches)
     pitches = average_note_pitch(pitches, onsets, display=False)
 
+    # try:
     binned_pitches = bin_pitches(pitches, bins_per_pitchclass)
+    # except IndexError:
+    #     print "Path:", path
+    #     print "Method:", method
 
     return binclass(binned_pitches, bins_per_pitchclass)

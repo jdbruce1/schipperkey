@@ -97,7 +97,7 @@ def binclass(bin_energies, bins_per_pitchclass):
             octaves[oct_ind,len(bin_energies)-oct_ind*oct_len:] = np.nan
 
     binclass = np.nansum(octaves, axis=0) / np.isfinite(octaves).sum(0) # normalize by number of notes counted
-    return np.roll(binclass, -3) # roll back to align c to 0 index (rather than A)
+    return np.roll(binclass, -3*bins_per_pitchclass) # roll back to align c to 0 index (rather than A)
 
 
 def snap_to_pitchclass(pitches):

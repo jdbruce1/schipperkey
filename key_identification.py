@@ -149,7 +149,7 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
     # returns the name and a list of top key options in sorted order
 
     # melody, sr = load(path)
-    bins_per_pitchclass = 3
+    bins_per_pitchclass = 1
     bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr))
     # bin_intensities = [5, 40, 2, 17, 0, 57, 52, 8, 66, 10, 35, 2]
     # bin_intensities = np.repeat(bin_intensities, bins_per_pitchclass)

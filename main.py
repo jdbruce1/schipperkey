@@ -12,11 +12,15 @@ def get_keys(waves, labels=None):
         return [get_key_binned(wave, os.path.basename(wave), method=get_pitch_tracker_from_method(labels[os.path.basename(wave)][2])) for wave in waves] #[get_key(wave, wave) for wave in waves]
     else:
         return [get_key_binned(wave, os.path.basename(wave), method="yinfft") for wave in waves]
+    # if labels is not None:
+    #     return [get_key_from_file(wave, os.path.basename(wave),labels[os.path.basename(wave)][2]) for wave in waves] #[get_key(wave, wave) for wave in waves]
+    # else:
+    #     return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves]
 
 
-# def get_key_from_file(filename, name, method="hummed"):
-#     melody, sr = load(filename)
-#     return get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
+def get_key_from_file(filename, name, method="hummed"):
+    melody, sr = load(filename)
+    return get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
 
 
 def get_pitch_tracker_from_method(method):
@@ -127,17 +131,18 @@ def demo_mode():
         melody = recording
         name = "New recording"
     else:
-        file = custom_input("Enter the path to a file to get the key of: ")
-        while not os.path.isfile(file) or os.path.splitext(file)[1] != ".wav":
+        in_file = custom_input("Enter the path to a file to get the key of: ")
+        while not os.path.isfile(in_file) or os.path.splitext(in_file)[1] != ".wav":
             file = custom_input("File could not be found. (Make sure it is .wav format.) Try again: ")
-        melody, sr = load(file)
-        name = file
+        melody, sr = load(in_file)
+        name = in_file
 
     method = custom_input("How was this melody performed? (Whistled (w), Hummed (h), Sung (s), or Other (o)?")
     while method not in ['w', 'W', 'whistled', 'Whistled', 'h', 'H', 'hummed', 'Hummed', 's', 'S', 'sung', 'Sung', 'o', 'O', 'other', 'Other']:
         method = custom_input("I did not recognize that method.  Please input again: (w, h, s, or o?")
 
-    key = get_key_binned(melody, name, method=get_pitch_tracker_from_method(method), sr=sr) #get_key(melody, name)
+    key = get_key_binned(in_file, name, method=get_pitch_tracker_from_method(method), sr=sr) #get_key(melody, name)
+    # key = get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
     print "Assigned Keys:"
     for i in range(len(key[1])):
         print "\t", str(i+1) + ".", key[1][i]
@@ -151,7 +156,7 @@ def demo_mode():
             chosen_key = custom_input("Did not recognize input.  Please pick one of the assigned keys: ")
         if chosen_key == "skip":
             break
-        note_added, sr = add_note(chosen_key, file)
+        note_added, sr = add_note(chosen_key, in_file)
         sounddevice.play(note_added, sr)
         custom_input("(Press Enter to stop.)")
         sounddevice.stop()

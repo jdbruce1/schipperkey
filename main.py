@@ -4,7 +4,7 @@ import csv
 import sounddevice
 from librosa import load
 import numpy as np
-from key_identification import check_relative, get_key_binned, get_key
+from key_identification import check_relative, get_key_binned
 
 
 def get_keys(waves, labels=None):

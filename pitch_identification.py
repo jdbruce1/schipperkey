@@ -369,7 +369,7 @@ def identify_pitches_from_path(path, method, sr=22050):
 # print identify_pitches('toy_data/Twinkle.wav')
 
 def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050):
-    # plt.ion()
+    plt.ion()
     # print "Path:", path
     # print "Method:", method
     pitches = pitch_track(path, method=method, sr=sr,display=False)

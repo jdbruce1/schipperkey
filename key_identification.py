@@ -11,6 +11,13 @@ offset_map = {"C": 0, "Db": 1, "D": 2, "Eb": 3, "E": 4, "F": 5, "F#": 6, "G": 7,
 reverse_map = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A","Bb", "B"]
 
 
+def remove_duplicates(lst):
+    output = []
+    for x in lst:
+        if x not in output:
+            output.append(x)
+    return output
+
 def check_relative(key1, key2):
     if len(key1) >= 2 and key1[-1] == 'm':
         return reverse_map[(offset_map[key1[:-1]] + 3) % 12] == key2 or key1[:-1] == key2
@@ -143,11 +150,14 @@ def get_bin_score(key_vector, offset, bins, bins_per_pitchclass):
     return compare_key_krumhansl(get_rolled_totals(bins, offset, bins_per_pitchclass), np.array(key_vector))
 
 
+
 def get_key_binned(path, name, method='yinfft', sr=22050):
     # gets the key from a path
     # takes a signal, its sample rate, and its name
     # returns the name and a list of top key options in sorted order
 
+    if method == 'fcomb':
+        print name, "is whistled"
     # melody, sr = load(path)
     bins_per_pitchclass = 1
     bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr))
@@ -177,12 +187,14 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
         else:
             best_mode = ''
         pitchclass_index = (12 - best_offsets[i]/bins_per_pitchclass) % 12
-        return_stuff.append([reverse_map[pitchclass_index], best_mode, key_likelihoods[best_offsets[i], best_modes[i]], best_offsets[i]%bins_per_pitchclass-bins_per_pitchclass/2])
+        pitch_offset = (bins_per_pitchclass - best_offsets[i]) % bins_per_pitchclass -bins_per_pitchclass/2
+        return_stuff.append([reverse_map[pitchclass_index], best_mode, key_likelihoods[best_offsets[i], best_modes[i]], pitch_offset ])
 
     return_stuff = sorted(return_stuff, key=lambda x: x[2],reverse=True)
 
     return_stuff = [str(x[0]) +x[1] for x in return_stuff] #+'. Score: '+str(x[2])
 
+    return_stuff = remove_duplicates(return_stuff)
     # Jacob: I took out the str(x[3]) so we could actually get a score
 
     # print return_stuff

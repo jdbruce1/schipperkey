@@ -133,7 +133,7 @@ def demo_mode():
     else:
         in_file = custom_input("Enter the path to a file to get the key of: ")
         while not os.path.isfile(in_file) or os.path.splitext(in_file)[1] != ".wav":
-            file = custom_input("File could not be found. (Make sure it is .wav format.) Try again: ")
+            in_file = custom_input("File could not be found. (Make sure it is .wav format.) Try again: ")
         melody, sr = load(in_file)
         name = in_file
 

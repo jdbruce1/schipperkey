@@ -5,32 +5,24 @@ import sounddevice
 from librosa import load
 import numpy as np
 from key_identification import check_relative, get_key_binned
-
+from pitch_identification import wavwrite
 
 def get_keys(waves, labels=None):
     if labels is not None:
         return [get_key_binned(wave, os.path.basename(wave), method=get_pitch_tracker_from_method(labels[os.path.basename(wave)][2])) for wave in waves] #[get_key(wave, wave) for wave in waves]
     else:
         return [get_key_binned(wave, os.path.basename(wave), method="yinfft") for wave in waves]
-    # if labels is not None:
-    #     return [get_key_from_file(wave, os.path.basename(wave),labels[os.path.basename(wave)][2]) for wave in waves] #[get_key(wave, wave) for wave in waves]
-    # else:
-    #     return [get_key_from_file(wave, os.path.basename(wave)) for wave in waves]
-
-
-def get_key_from_file(filename, name, method="hummed"):
-    melody, sr = load(filename)
-    return get_key(melody, name, method=get_pitch_tracker_from_method(method), sr=sr)
-
 
 def get_pitch_tracker_from_method(method):
+    '''Converts the input type to the pitch tracker method. Whistling -> fcomb, else yinfft
+    inputs:     a string representing the input method.
+    outputs:    a string representing the pitch tracker method'''
     if method.lower()[0] == 'w':
         return 'fcomb'
     return 'yinfft'
 
 def add_note(key, file):
     return load(file)
-
 
 def score_keys(algorithm, correct):
     return [(score_key(algorithm[key], correct[key][0]), algorithm[key], correct[key][0], key) for key in algorithm.keys()]
@@ -50,7 +42,6 @@ def score_key(assigned_keys, correct_key):
         total += 10
 
     return total
-
 
 def record(sr):
     max_frames = sr*60
@@ -129,13 +120,17 @@ def demo_mode():
             sounddevice.stop()
             response = custom_input("Would you like to record a different melody or move on? (Y to record again.): ")
         melody = recording
+        in_file = 'temp.wav'
+        wavwrite(in_file, melody, 22050)
         name = "New recording"
+        erase_flag = True
     else:
         in_file = custom_input("Enter the path to a file to get the key of: ")
         while not os.path.isfile(in_file) or os.path.splitext(in_file)[1] != ".wav":
             in_file = custom_input("File could not be found. (Make sure it is .wav format.) Try again: ")
         melody, sr = load(in_file)
         name = in_file
+        erase_flag = False
 
     method = custom_input("How was this melody performed? (Whistled (w), Hummed (h), Sung (s), or Other (o)?")
     while method not in ['w', 'W', 'whistled', 'Whistled', 'h', 'H', 'hummed', 'Hummed', 's', 'S', 'sung', 'Sung', 'o', 'O', 'other', 'Other']:
@@ -161,6 +156,8 @@ def demo_mode():
         custom_input("(Press Enter to stop.)")
         sounddevice.stop()
         response = custom_input("Would you like to hear another key? (Y for yes, no otherwise): ")
+    if erase_flag:
+        os.remove(in_file)
     response = custom_input("Would you like to work on another recording? (Y for yes, no otherwise): ")
     if response in ['y', 'Y', 'yes', 'Yes']:
         return 1

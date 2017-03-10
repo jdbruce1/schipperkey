@@ -1,5 +1,5 @@
 import numpy as np
-from pitch_identification import identify_pitches_binned, identify_pitches
+from pitch_identification import identify_pitches_binned #, identify_pitches
 from math import sqrt
 from librosa import load
 
@@ -11,7 +11,7 @@ reverse_map = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A","Bb", "B"]
 
 
 def remove_duplicates(lst):
-    # removes duplicates from a list
+    '''Removes duplicates from a list'''
     output = []
     for x in lst:
         if x not in output:
@@ -28,6 +28,10 @@ def check_relative(key1, key2):
             return False
 
 def compare_key_krumhansl(test, keyvector):
+    '''Compares two vectors to give a similarity, based on paper by krumhansl
+    inputs:     a test vector representing the total duration of pitches in the song
+                a key vector representing the common prevalance of pitches in the key
+    outputs:    a score for how similar the key is to the song'''
     x = test
     y = keyvector
     xavg = np.mean(x)
@@ -35,44 +39,22 @@ def compare_key_krumhansl(test, keyvector):
     score = np.sum((x-xavg) * (y-yavg)) / sqrt(np.sum((x-xavg)**2)*np.sum((y-yavg)**2))
     return score
 
-def get_key_vector(note, mode):
-    if mode == "major":
-        return roll(cmaj, offset_map[note])
-    elif mode == "minor":
-        return roll(cmin, offset_map[note])
-    return None
-
-def get_key_vector_ind(index, mode):
-    # as get_key_vector but using pitchlass indices, rather than pitchclasses
-    if mode == "major":
-        return roll(cmaj, index)
-    elif mode == "minor":
-        return roll(cmin, index)
-    return None
-
-def roll(vector, offset):
-    if offset >= len(vector):
-        raise ValueError("Offset must be less than vector length.")
-    end = vector[len(vector)-offset:] + vector[:len(vector)-offset]
-    if offset == 8:
-        print end
-    return end
-
-
 def get_rolled_totals(bins, offset, bins_per_pitchclass):
     bins = np.roll(bins, offset)
     vector = [np.sum(bins[i:bins_per_pitchclass+i]) for i in range(0, len(bins), bins_per_pitchclass)]
     # print vector
     return np.array(vector)
 
-
 def get_bin_score(key_vector, offset, bins, bins_per_pitchclass):
     return compare_key_krumhansl(get_rolled_totals(bins, offset, bins_per_pitchclass), np.array(key_vector))
 
 def get_key_binned(path, name, method='yinfft', sr=22050):
-    # gets the key from a path
-    # takes a signal, its sample rate, and its name
-    # returns the name and a list of top key options in sorted order
+    '''Gets the key from a file, using the binning method
+    inputs:     a path to the file containing the melody (string)
+                the name of the song (string)
+                the method for the pitch tracker to use (fcomb for whistling, yinfft otherwise) (string)
+                the sample rate for the file (number)
+    outputs:    a (name list) tuple where the list is the top 5 best keys identified'''
 
     # if method == 'fcomb':
     #     print name, "is whistled"
@@ -85,8 +67,6 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
     for offset_index in range(len(bin_intensities)):
         key_likelihoods[offset_index,0] = get_bin_score(cmaj, offset_index, bin_intensities, bins_per_pitchclass)
         key_likelihoods[offset_index,1] = get_bin_score(cmin, offset_index, bin_intensities, bins_per_pitchclass)
-
-    
 
     offsets = np.repeat(np.arange(12*bins_per_pitchclass),2)
     modes = np.tile(np.array([0,1]), 12*bins_per_pitchclass)

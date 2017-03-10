@@ -215,17 +215,16 @@ def pitch_track(path, method='yinfft', sr=22050, downsample=1, win_size=2048, ho
     return output
 
 
-
-def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050):
+def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050, disp=False):
     # Takes the path to a .wav file, and returns a vector of bins_per_pitchclass*12 elements
     # representing how strongly those frequencies appear in the input file.  Each bin corresponds
     # to one part of a western note, so at minimum, there should be 12 bins.
-    plt.ion()
-    pitches = pitch_track(path, method=method, sr=sr,display=False)
-    pitches = remove_jumps(pitches, 15, 200, display=False)
-    pitches = remove_jumps(pitches, 5, 200, display = False)
+    # plt.ion()
+    pitches = pitch_track(path, method=method, sr=sr,display=disp)
+    pitches = remove_jumps(pitches, 15, 200, display=disp)
+    pitches = remove_jumps(pitches, 5, 200, display = disp)
     onsets = get_note_onsets(pitches)
-    pitches = average_note_pitch(pitches, onsets, display=False)
+    pitches = average_note_pitch(pitches, onsets, display=disp)
     binned_pitches = bin_pitches(pitches, bins_per_pitchclass)
 
-    return binclass(binned_pitches, bins_per_pitchclass)
+    print binclass(binned_pitches, bins_per_pitchclass)

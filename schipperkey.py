@@ -27,8 +27,11 @@ def add_note(key, file):
 def score_keys(algorithm, correct):
     return [(score_key(algorithm[key], correct[key][0]), algorithm[key], correct[key][0], key) for key in algorithm.keys()]
 
-
 def score_key(assigned_keys, correct_key):
+    '''Scores key assignment according to scoring formula determined
+    inputs:     a list of strings representing the keys assigned by key identification
+                a string representing the correct key
+    outputs:    the score for the key assignment (out of 100)'''
     if assigned_keys[0] == correct_key:
         return 100
     total = 0
@@ -44,6 +47,9 @@ def score_key(assigned_keys, correct_key):
     return total
 
 def record(sr):
+    '''Records the user singing the melody
+    inputs:     the sample rate desired
+    outputs:    a signal recorded from the user'''
     max_frames = sr*60
 
     recording = sounddevice.rec(frames=max_frames, samplerate=sr, channels=1)
@@ -59,8 +65,9 @@ def read_label_file(in_filename):
     pairs = [(line[0] + ".wav", line[1:]) for line in reader]
     return pairs
 
-
 def test_mode():
+    '''Runs the test mode of the program, interfacing with the user and calling other functions
+    outputs:    0 indicating program exit'''
     folder = custom_input("Enter the path to a folder with .wav files that you would like to know the key of: ")
 
     while not os.path.isdir(folder):
@@ -105,6 +112,8 @@ def test_mode():
 
 
 def demo_mode():
+    '''Runs the demo mode of the program, interfacing with the user and calling other functions
+    outputs:    1 to return to main prompt, 0 to exit program'''
     choice = custom_input("Will you record now (R) or read from file (F)? ")
     while choice not in ['f', 'F', 'file', 'File', 'r', 'R', 'record', 'Record']:
         choice = custom_input("Input not understood.  Record now (R) or read from file (F)? ")

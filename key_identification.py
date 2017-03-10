@@ -19,6 +19,7 @@ def remove_duplicates(lst):
     return output
 
 def check_relative(key1, key2):
+    '''Jacob: I don't really know what this does'''
     if len(key1) >= 2 and key1[-1] == 'm':
         return reverse_map[(offset_map[key1[:-1]] + 3) % 12] == key2 or key1[:-1] == key2
     else:
@@ -46,6 +47,8 @@ def get_rolled_totals(bins, offset, bins_per_pitchclass):
     return np.array(vector)
 
 def get_bin_score(key_vector, offset, bins, bins_per_pitchclass):
+    '''Wrapper for compare_key_krumhansl - takes the inputs from the caller and
+    converts them to the inputs that compare_key_krumhansl expects'''
     return compare_key_krumhansl(get_rolled_totals(bins, offset, bins_per_pitchclass), np.array(key_vector))
 
 def get_key_binned(path, name, method='yinfft', sr=22050):

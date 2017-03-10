@@ -38,15 +38,12 @@ def bin_pitches(pitches, bins_per_pitchclass):
     # number of elements in the input array that fell within that bin's frequencies.
     top_piano_note =  440*2**(39.0/12)
     bottom_piano_note = 440*2**(-48.0/12)
-
     num_bins = 88 * bins_per_pitchclass
-
     bin_edges = bottom_piano_note * (2**(-.5/12)) * np.logspace(0, 88.0/12, num_bins+1, base=2)
 
     bin_indices = np.searchsorted(bin_edges, pitches) - 1
 
     bin_energies = np.zeros(num_bins)
-
     pitches[pitches > top_piano_note] = 0
 
     for pi in range(len(pitches)):

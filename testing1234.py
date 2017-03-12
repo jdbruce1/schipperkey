@@ -8,7 +8,7 @@ import amfm_decompy.basic_tools as basic
 from matplotlib import pyplot as plt
 from librosa import load
 import librosa
-from pitch_identification import identify_pitches, pitch_track, remove_jumps, bin_pitches, get_note_onsets, average_note_pitch, identify_pitches_binned, binclass
+from pitch_identification import pitch_track, remove_jumps, bin_pitches, get_note_onsets, average_note_pitch, identify_pitches_binned, binclass
 from key_identification import get_key_binned
 # import pitch_identification
 

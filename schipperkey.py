@@ -22,8 +22,23 @@ def get_pitch_tracker_from_method(method):
     return 'yinfft'
 
 def add_chord(key, file):
-    print key
-    return load(file)
+    if key[-1] is 'm':
+        # key is minor, like Cm
+        path = 'chords/minor/'+key[:-1]+'.wav'
+        chord, sr_load = load(path)
+    else:
+        # key is major, like C
+        path = 'chords/major/'+key+'.wav'
+        chord, sr_load = load(path)
+
+
+    melody, sr = load(file)
+
+    assert sr == sr_load, "Sample rate of song (%r) is not the same as sample rate of chord (%r)" % (sr, sr_load)
+
+    output = np.concatenate((chord, melody, chord))
+
+    return output, sr
 
 def score_keys(algorithm, correct):
     return [(score_key(algorithm[key], correct[key][0]), algorithm[key], correct[key][0], key) for key in algorithm.keys()]

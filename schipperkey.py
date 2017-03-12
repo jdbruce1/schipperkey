@@ -21,7 +21,8 @@ def get_pitch_tracker_from_method(method):
         return 'fcomb'
     return 'yinfft'
 
-def add_note(key, file):
+def add_chord(key, file):
+    print key
     return load(file)
 
 def score_keys(algorithm, correct):
@@ -160,7 +161,7 @@ def demo_mode():
             chosen_key = custom_input("Did not recognize input.  Please pick one of the assigned keys: ")
         if chosen_key == "skip":
             break
-        note_added, sr = add_note(chosen_key, in_file)
+        note_added, sr = add_chord(chosen_key, in_file)
         sounddevice.play(note_added, sr)
         custom_input("(Press Enter to stop.)")
         sounddevice.stop()

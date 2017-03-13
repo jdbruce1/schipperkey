@@ -31,7 +31,7 @@ def wavwrite(filepath, data, sr, norm=True, dtype='int16',):
 
 
 
-def bin_pitches(pitches, bins_per_pitchclass):
+def bin_pitches(pitches, bins_per_pitchclass, pitchshift=0):
     # Takes in a numpy array of frequencies in Hz, and returns a numpy
     # array of energies in frequency bins.  There are bins_per_pitchclass * 88
     # elements in the output array.  The value in each bin is equal to the
@@ -39,7 +39,7 @@ def bin_pitches(pitches, bins_per_pitchclass):
     top_piano_note =  440*2**(39.0/12)
     bottom_piano_note = 440*2**(-48.0/12)
     num_bins = 88 * bins_per_pitchclass
-    bin_edges = bottom_piano_note * (2**(-.5/12)) * np.logspace(0, 88.0/12, num_bins+1, base=2)
+    bin_edges = bottom_piano_note * (2**((-.5 + pitchshift)/12)) * np.logspace(0, 88.0/12, num_bins+1, base=2)
 
     bin_indices = np.searchsorted(bin_edges, pitches) - 1
 
@@ -215,16 +215,16 @@ def pitch_track(path, method='yinfft', sr=22050, downsample=1, win_size=2048, ho
     return output
 
 
-def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050, disp=False):
+def identify_pitches_binned(path, bins_per_pitchclass, method, pitchshift=0, sr=22050, disp=False):
     # Takes the path to a .wav file, and returns a vector of bins_per_pitchclass*12 elements
     # representing how strongly those frequencies appear in the input file.  Each bin corresponds
     # to one part of a western note, so at minimum, there should be 12 bins.
-    # plt.ion()
+    plt.ion()
     pitches = pitch_track(path, method=method, sr=sr,display=disp)
     pitches = remove_jumps(pitches, 15, 200, display=disp)
     pitches = remove_jumps(pitches, 5, 200, display = disp)
     onsets = get_note_onsets(pitches)
     pitches = average_note_pitch(pitches, onsets, display=disp)
-    binned_pitches = bin_pitches(pitches, bins_per_pitchclass)
+    binned_pitches = bin_pitches(pitches, bins_per_pitchclass, pitchshift)
 
     return binclass(binned_pitches, bins_per_pitchclass)

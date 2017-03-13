@@ -106,6 +106,7 @@ def test_mode():
 
     total_score = 0
     num_zeros = 0
+    num_hundos = 0
     for melody in output:
         if len(melody) is 4:
             print "Assigned Keys:", melody[1]
@@ -114,6 +115,8 @@ def test_mode():
             total_score += melody[0]
             if melody[0] == 0:
                 num_zeros += 1
+            if melody[0] == 100:
+                num_hundos += 1
             print "Filename:", melody[3]
         else:
             print "Assigned Key:", melody[0]
@@ -122,6 +125,7 @@ def test_mode():
 
     print "Average Score:", 1.0*total_score/len(output)
     print "Number of zero scores:", num_zeros
+    print "Number of perfect scores:", num_hundos
     print
 
     return 0

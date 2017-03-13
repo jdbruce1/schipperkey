@@ -139,9 +139,7 @@ def average_note_pitch(pitches, onsets, display=False):
         output[onsets[i][0]:onsets[i][1]] = np.mean(pitches[onsets[i][0]:onsets[i][1]])
 
     if display:
-        plt.figure()
-        plt.plot(output)
-        plt.show()
+        plot_signal(output, 22050/512, 'Pitch Track with Notes Averaged', 'Time (s)', 'Frequency (Hz)')
     return output
 
 
@@ -161,9 +159,7 @@ def remove_jumps(pitches, window_size, threshold, display=False):
                 start_peak = index
 
     if display:
-        plt.figure()
-        plt.plot(pitches)
-        plt.show()
+        plot_signal(pitches, 22050/512, 'Pitch Track with Jumps Removed', 'Time (s)', 'Frequency (Hz)')
 
     return pitches
 
@@ -208,20 +204,42 @@ def pitch_track(path, method='yinfft', sr=22050, downsample=1, win_size=2048, ho
     output = np.array(pitches)
 
     if display:
-        plt.figure()
-        plt.plot(output)
-        plt.show()
+        plot_signal(pitches, sr/hop_size, 'Pitch Track', 'Time (s)', 'Frequency (Hz)')
 
     return output
 
+def plot_signal(y, sr, title, xlabel, ylabel, figsize=(10,10)):
+    '''Plots a time signal given its sample rate and axis labels'''
+    x = [1.0*elem/sr for elem in range(len(y))]
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(111)
+    # fig.subplots_adjust(top=0.85)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    # ax.set_xbound(lower=0, upper=500)#len(y)/sr)
+    ax.plot(x,y)
+    plt.show()
 
 def identify_pitches_binned(path, bins_per_pitchclass, method, pitchshift=0, sr=22050, disp=False):
     # Takes the path to a .wav file, and returns a vector of bins_per_pitchclass*12 elements
     # representing how strongly those frequencies appear in the input file.  Each bin corresponds
     # to one part of a western note, so at minimum, there should be 12 bins.
-    plt.ion()
+    # plt.ion()
+
+    if disp:
+        y, sr1 = librosa.load(path)
+        plot_signal(y, sr1, "Waveform", "Time (s)", "Amplitude", figsize=(20, 4))
+        hop_length = 1024
+        n_fft = 2048
+        stft = librosa.stft(y, hop_length = hop_length, n_fft = n_fft)
+        log_spectrogram = librosa.logamplitude(np.abs(stft**2), ref_power=np.max)
+        plt.figure(figsize=(20, 4))
+        librosa.display.specshow(log_spectrogram, sr = sr, hop_length = hop_length, y_axis = 'log', x_axis = 'time')
+        plt.show()
+
     pitches = pitch_track(path, method=method, sr=sr,display=disp)
-    pitches = remove_jumps(pitches, 15, 200, display=disp)
+    pitches = remove_jumps(pitches, 30, 100, display=disp)
     pitches = remove_jumps(pitches, 5, 200, display = disp)
     onsets = get_note_onsets(pitches)
     pitches = average_note_pitch(pitches, onsets, display=disp)

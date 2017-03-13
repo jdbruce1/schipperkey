@@ -63,27 +63,32 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
     #     print name, "is whistled"
 
     bins_per_pitchclass = 1
-    bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr, disp=True))
-
-    key_likelihoods = np.zeros((len(bin_intensities), 2))
+    bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr, disp=False))
+    bin_intensities_shift = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, pitchshift=.5, sr=sr, disp=False))
+    key_likelihoods = np.zeros((len(bin_intensities), 4))
 
     for offset_index in range(len(bin_intensities)):
         key_likelihoods[offset_index,0] = get_bin_score(cmaj, offset_index, bin_intensities, bins_per_pitchclass)
         key_likelihoods[offset_index,1] = get_bin_score(cmin, offset_index, bin_intensities, bins_per_pitchclass)
+        key_likelihoods[offset_index,2] = get_bin_score(cmaj, offset_index, bin_intensities_shift, bins_per_pitchclass)
+        key_likelihoods[offset_index,3] = get_bin_score(cmin, offset_index, bin_intensities_shift, bins_per_pitchclass)
 
-    offsets = np.repeat(np.arange(12*bins_per_pitchclass),2)
-    modes = np.tile(np.array([0,1]), 12*bins_per_pitchclass)
+    offsets = np.repeat(np.arange(12*bins_per_pitchclass),4)
+    modes = np.tile(np.array([0,1,2,3]), 12*bins_per_pitchclass)
 
     key_outputs = []
 
     for i in range(len(offsets)):
-        if modes[i] == 1:
+        if modes[i] % 2 == 1:
             best_mode = 'm'
         else:
             best_mode = ''
         pitchclass_index = (12 - offsets[i]/bins_per_pitchclass) % 12
         pitch_offset = (bins_per_pitchclass - offsets[i]) % bins_per_pitchclass -bins_per_pitchclass/2
         key_outputs.append([reverse_map[pitchclass_index], best_mode, key_likelihoods[offsets[i], modes[i]], pitch_offset ])
+        # Also guess the key above this key if you're really sharp
+        if modes[i] >= 2:
+            key_outputs.append([reverse_map[(pitchclass_index+1)%12], best_mode, key_likelihoods[offsets[i], modes[i]], pitch_offset ])
 
     key_outputs = sorted(key_outputs, key=lambda x: x[2],reverse=True)
 

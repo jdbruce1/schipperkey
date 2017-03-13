@@ -226,5 +226,9 @@ def identify_pitches_binned(path, bins_per_pitchclass, method, sr=22050, disp=Fa
     onsets = get_note_onsets(pitches)
     pitches = average_note_pitch(pitches, onsets, display=disp)
     binned_pitches = bin_pitches(pitches, bins_per_pitchclass)
+    bc = binclass(binned_pitches, bins_per_pitchclass)
 
-    return binclass(binned_pitches, bins_per_pitchclass)
+    if disp:
+        print "Binclass:", bc
+
+    return bc

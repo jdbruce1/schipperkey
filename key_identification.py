@@ -63,7 +63,7 @@ def get_key_binned(path, name, method='yinfft', sr=22050):
     #     print name, "is whistled"
 
     bins_per_pitchclass = 1
-    bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr))
+    bin_intensities = np.array(identify_pitches_binned(path, bins_per_pitchclass, method, sr=sr, disp=True))
 
     key_likelihoods = np.zeros((len(bin_intensities), 2))
 
